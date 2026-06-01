@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { tryGetSupabaseClient } from '@/lib/supabase'
 
 type Tab = 'djs' | 'ranking' | 'control'
+type BackgroundTarget = 'home' | 'vote'
 
 export default function AdminClient() {
   const [tab, setTab] = useState<Tab>('djs')
@@ -11,15 +12,20 @@ export default function AdminClient() {
   const [djs, setDjs] = useState<any[]>([])
   const [ranking, setRanking] = useState<any[]>([])
   const [votingOpen, setVotingOpen] = useState(true)
+  const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
+  const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [homeBackgroundFile, setHomeBackgroundFile] = useState<File | null>(null)
+  const [voteBackgroundFile, setVoteBackgroundFile] = useState<File | null>(null)
 
   const [totalCodes, setTotalCodes] = useState(1000)
   const [loadingCodes, setLoadingCodes] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
   const [realtimeEnabled, setRealtimeEnabled] = useState(false)
+  const [savingBackground, setSavingBackground] = useState<BackgroundTarget | null>(null)
 
   // ================= INIT =================
   useEffect(() => {
@@ -29,7 +35,40 @@ export default function AdminClient() {
   const fetchAll = () => {
     fetchDjs()
     fetchRanking()
-    fetchSettings()
+    void fetchSettings()
+  }
+
+  const uploadImage = async (selectedFile: File, folder = 'djs') => {
+    const formData = new FormData()
+    formData.append('file', selectedFile)
+    formData.append('folder', folder)
+
+    const uploadRes = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const uploadData = await uploadRes.json()
+
+    if (!uploadRes.ok) {
+      throw new Error(uploadData.error || 'Erro no upload')
+    }
+
+    return uploadData.url as string
+  }
+
+  const saveSettings = async (updates: Record<string, boolean | string | null>) => {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Erro ao guardar definicoes')
+    }
   }
 
   // ================= DJs =================
@@ -66,28 +105,30 @@ export default function AdminClient() {
       return
     }
 
-    const formData = new FormData()
-    formData.append('file', file)
+    try {
+      const imageUrl = await uploadImage(file, 'djs')
 
-    const uploadRes = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    })
+      const res = await fetch('/api/djs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newName,
+          image_url: imageUrl,
+        }),
+      })
 
-    const uploadData = await uploadRes.json()
+      const data = await res.json()
 
-    await fetch('/api/djs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: newName,
-        image_url: uploadData.url,
-      }),
-    })
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro ao adicionar DJ')
+      }
 
-    setNewName('')
-    setFile(null)
-    fetchDjs()
+      setNewName('')
+      setFile(null)
+      fetchDjs()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erro ao adicionar DJ')
+    }
   }
 
   // ================= RANKING =================
@@ -136,17 +177,76 @@ export default function AdminClient() {
   const fetchSettings = async () => {
     const res = await fetch('/api/settings')
     const data = await res.json()
-    setVotingOpen(data.voting_open)
+    setVotingOpen(Boolean(data?.voting_open))
+    setHomeBackgroundUrl(data?.home_background_url || null)
+    setVoteBackgroundUrl(data?.vote_background_url || null)
   }
 
   const toggleVoting = async () => {
-    await fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ voting_open: !votingOpen }),
-    })
+    try {
+      await saveSettings({ voting_open: !votingOpen })
+      setVotingOpen(!votingOpen)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erro ao atualizar votacao')
+    }
+  }
 
-    setVotingOpen(!votingOpen)
+  const saveBackgroundImage = async (target: BackgroundTarget) => {
+    const selectedFile =
+      target === 'home' ? homeBackgroundFile : voteBackgroundFile
+
+    if (!selectedFile) {
+      alert('Escolhe uma imagem primeiro')
+      return
+    }
+
+    setSavingBackground(target)
+
+    try {
+      const imageUrl = await uploadImage(selectedFile, 'backgrounds')
+
+      if (target === 'home') {
+        await saveSettings({ home_background_url: imageUrl })
+        setHomeBackgroundUrl(imageUrl)
+        setHomeBackgroundFile(null)
+      } else {
+        await saveSettings({ vote_background_url: imageUrl })
+        setVoteBackgroundUrl(imageUrl)
+        setVoteBackgroundFile(null)
+      }
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao atualizar fundo'
+      )
+    } finally {
+      setSavingBackground(null)
+    }
+  }
+
+  const clearBackgroundImage = async (target: BackgroundTarget) => {
+    setSavingBackground(target)
+
+    try {
+      if (target === 'home') {
+        await saveSettings({ home_background_url: null })
+        setHomeBackgroundUrl(null)
+        setHomeBackgroundFile(null)
+      } else {
+        await saveSettings({ vote_background_url: null })
+        setVoteBackgroundUrl(null)
+        setVoteBackgroundFile(null)
+      }
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao remover fundo'
+      )
+    } finally {
+      setSavingBackground(null)
+    }
   }
 
   // ================= RESET =================
@@ -372,6 +472,32 @@ export default function AdminClient() {
           </div>
 
           <div className="p-6 border rounded-xl">
+            <h2 className="text-xl font-bold mb-3">Fundos das páginas</h2>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <BackgroundCard
+                title="Página principal"
+                currentImage={homeBackgroundUrl}
+                selectedFile={homeBackgroundFile}
+                saving={savingBackground === 'home'}
+                onFileChange={setHomeBackgroundFile}
+                onSave={() => void saveBackgroundImage('home')}
+                onClear={() => void clearBackgroundImage('home')}
+              />
+
+              <BackgroundCard
+                title="Página de voto"
+                currentImage={voteBackgroundUrl}
+                selectedFile={voteBackgroundFile}
+                saving={savingBackground === 'vote'}
+                onFileChange={setVoteBackgroundFile}
+                onSave={() => void saveBackgroundImage('vote')}
+                onClear={() => void clearBackgroundImage('vote')}
+              />
+            </div>
+          </div>
+
+          <div className="p-6 border rounded-xl">
             <h2 className="text-xl font-bold mb-2">Reset</h2>
 
             <button
@@ -423,4 +549,73 @@ function tabBtn(active: boolean) {
   return `px-4 py-2 rounded-xl font-bold ${
     active ? 'bg-black text-white' : 'bg-zinc-200'
   }`
+}
+
+type BackgroundCardProps = {
+  title: string
+  currentImage: string | null
+  selectedFile: File | null
+  saving: boolean
+  onFileChange: (file: File | null) => void
+  onSave: () => void
+  onClear: () => void
+}
+
+function BackgroundCard({
+  title,
+  currentImage,
+  selectedFile,
+  saving,
+  onFileChange,
+  onSave,
+  onClear,
+}: BackgroundCardProps) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+      <p className="font-bold mb-3">{title}</p>
+
+      {currentImage ? (
+        <img
+          src={currentImage}
+          alt={title}
+          className="h-40 w-full rounded-xl object-cover mb-3"
+        />
+      ) : (
+        <div className="mb-3 flex h-40 items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white text-sm text-zinc-500">
+          Nenhum fundo definido
+        </div>
+      )}
+
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={(event) => onFileChange(event.target.files?.[0] || null)}
+        className="mb-3 block w-full"
+      />
+
+      {selectedFile && (
+        <p className="mb-3 text-sm text-zinc-600">
+          Novo ficheiro: {selectedFile.name}
+        </p>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          onClick={onSave}
+          disabled={saving || !selectedFile}
+          className="flex-1 rounded-xl bg-black px-4 py-3 font-bold text-white disabled:opacity-50"
+        >
+          {saving ? 'A guardar...' : 'Guardar fundo'}
+        </button>
+
+        <button
+          onClick={onClear}
+          disabled={saving || !currentImage}
+          className="rounded-xl border border-zinc-300 bg-white px-4 py-3 font-bold disabled:opacity-50"
+        >
+          Remover
+        </button>
+      </div>
+    </div>
+  )
 }

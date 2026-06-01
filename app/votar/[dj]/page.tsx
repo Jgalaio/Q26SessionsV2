@@ -24,6 +24,7 @@ export default function VotePage() {
   const [success, setSuccess] = useState(false)
   const [manualCode, setManualCode] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
 
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const lastScanRef = useRef<string | null>(null)
@@ -112,6 +113,27 @@ export default function VotePage() {
       }
     }
   }, [dj])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadSettings = async () => {
+      try {
+        const res = await fetch('/api/settings')
+        const data = await res.json()
+
+        if (isMounted) {
+          setVoteBackgroundUrl(data?.vote_background_url || null)
+        }
+      } catch {}
+    }
+
+    void loadSettings()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const feedback = () => {
     const audio = new Audio('/beep.mp3')
@@ -231,8 +253,19 @@ export default function VotePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center p-6">
-      <div className="max-w-md w-full">
+    <main
+      className="relative min-h-screen bg-white flex items-center justify-center p-6 bg-cover bg-center"
+      style={
+        voteBackgroundUrl
+          ? { backgroundImage: `url(${voteBackgroundUrl})` }
+          : undefined
+      }
+    >
+      {voteBackgroundUrl && (
+        <div className="absolute inset-0 bg-black/55" />
+      )}
+
+      <div className="relative z-10 max-w-md w-full">
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-zinc-200">
           <div className="relative group">
             <img

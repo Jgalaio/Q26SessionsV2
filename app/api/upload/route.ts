@@ -9,6 +9,17 @@ const ACCEPTED_IMAGE_TYPES = new Set([
   'image/webp',
 ])
 
+function normalizeSegment(value: string) {
+  return value
+    .replace(/[^a-zA-Z0-9/_-]/g, '')
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '')
+}
+
+function normalizeFileName(value: string) {
+  return value.replace(/[^a-zA-Z0-9._-]/g, '-')
+}
+
 export async function POST(req: Request) {
   const unauthorized = await requireAdminApiAccess()
 
@@ -19,6 +30,7 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File
+    const folderValue = formData.get('folder')
 
     if (!file) {
       return NextResponse.json({ error: 'No file' }, { status: 400 })
@@ -38,11 +50,14 @@ export async function POST(req: Request) {
       )
     }
 
-    const fileName = `${Date.now()}-${file.name}`
+    const folder =
+      typeof folderValue === 'string' ? normalizeSegment(folderValue) : ''
+    const fileName = `${Date.now()}-${normalizeFileName(file.name)}`
+    const filePath = folder ? `${folder}/${fileName}` : fileName
 
     const { error } = await supabaseAdmin.storage
       .from('djs')
-      .upload(fileName, file)
+      .upload(filePath, file)
 
     if (error) {
       console.error(error)
@@ -51,7 +66,7 @@ export async function POST(req: Request) {
 
     const { data } = supabaseAdmin.storage
       .from('djs')
-      .getPublicUrl(fileName)
+      .getPublicUrl(filePath)
 
     return NextResponse.json({ url: data.publicUrl })
   } catch (err) {

@@ -6,9 +6,11 @@ import { motion } from 'framer-motion'
 export default function HomePage() {
   const [djs, setDjs] = useState<any[]>([])
   const [totalVotes, setTotalVotes] = useState(0)
+  const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
 
   useEffect(() => {
     fetchRanking()
+    fetchSettings()
   }, [])
 
   const fetchRanking = async () => {
@@ -21,9 +23,26 @@ export default function HomePage() {
     setDjs(data)
   }
 
+  const fetchSettings = async () => {
+    const res = await fetch('/api/settings')
+    const data = await res.json()
+    setHomeBackgroundUrl(data?.home_background_url || null)
+  }
+
   return (
-    <main className="min-h-screen bg-white px-6 py-8">
-      <div className="max-w-6xl mx-auto">
+    <main
+      className="relative min-h-screen bg-white px-6 py-8 bg-cover bg-center"
+      style={
+        homeBackgroundUrl
+          ? { backgroundImage: `url(${homeBackgroundUrl})` }
+          : undefined
+      }
+    >
+      {homeBackgroundUrl && (
+        <div className="absolute inset-0 bg-black/55" />
+      )}
+
+      <div className="relative z-10 max-w-6xl mx-auto">
 
         {/* TÍTULO */}
         <div className="text-center mb-12">
@@ -32,11 +51,11 @@ export default function HomePage() {
             className="mx-auto max-w-[250px] mb-4"
           />
 
-          <p className="text-zinc-600">
+          <p className={homeBackgroundUrl ? 'text-white/90' : 'text-zinc-600'}>
             Vota no teu DJ favorito
           </p>
 
-          <p className="text-sm text-zinc-400 mt-2">
+          <p className={homeBackgroundUrl ? 'text-sm text-white/70 mt-2' : 'text-sm text-zinc-400 mt-2'}>
             {totalVotes} votos registados
           </p>
         </div>
@@ -61,7 +80,7 @@ export default function HomePage() {
                 return (
                   <div
                     key={dj.id}
-                    className="px-6 py-4 rounded-2xl border shadow-sm bg-white"
+                    className="px-6 py-4 rounded-2xl border shadow-sm bg-white/90 backdrop-blur-sm"
                   >
                     <p className="text-lg font-bold">
                       {medals[index]} {dj.name}
