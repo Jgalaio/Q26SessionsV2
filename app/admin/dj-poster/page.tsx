@@ -74,8 +74,8 @@ export default function DjPosterPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,88,208,0.22),transparent_26%),radial-gradient(circle_at_bottom,rgba(110,231,255,0.14),transparent_30%)]" />
           <div className="absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-[#04040f]/96 via-[#050513]/76 to-transparent" />
 
-          <div className="relative z-10 mx-auto flex h-full w-full max-w-[245mm] flex-col justify-between p-8 md:p-10 print:p-[12mm]">
-            <div className="theme-neon-shell rounded-[40px] px-8 py-7 md:px-12 md:py-9 print:rounded-[10mm] print:px-[10mm] print:py-[8mm]">
+          <div className="relative z-10 mx-auto flex h-full w-full max-w-[245mm] flex-col gap-6 p-8 md:gap-8 md:p-10 print:gap-[6mm] print:p-[12mm]">
+            <div className="theme-neon-shell shrink-0 rounded-[40px] px-8 py-7 md:px-12 md:py-9 print:rounded-[10mm] print:px-[10mm] print:py-[8mm]">
               <div className="theme-neon-chip inline-flex rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-[0.34em]">
                 Quarentões 26 Sessions
               </div>
@@ -99,42 +99,42 @@ export default function DjPosterPage() {
               </p>
             </div>
 
-            <div className="theme-neon-shell rounded-[42px] px-8 py-8 md:px-10 md:py-10 print:rounded-[10mm] print:px-[8mm] print:py-[8mm]">
+            <div className="theme-neon-shell shrink rounded-[42px] px-8 py-7 md:px-10 md:py-8 print:rounded-[10mm] print:px-[8mm] print:py-[7mm]">
               <div className="theme-neon-chip mx-auto mb-6 inline-flex rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-[0.3em]">
                 DJ em destaque
               </div>
 
-              <div className="theme-neon-panel rounded-[38px] p-5 md:p-6 print:rounded-[9mm] print:p-[5mm]">
+              <div className="theme-neon-panel rounded-[38px] p-4 md:p-5 print:rounded-[9mm] print:p-[4mm]">
                 <img
                   src={dj.image_url}
                   alt={dj.name}
-                  className="mx-auto h-[420px] w-full max-w-[520px] rounded-[34px] border border-white/25 object-cover shadow-[0_0_55px_rgba(138,92,255,0.28)] md:h-[460px] print:h-[110mm] print:max-w-[126mm] print:rounded-[8mm]"
+                  className="mx-auto h-[330px] w-full max-w-[460px] rounded-[34px] border border-white/25 object-cover shadow-[0_0_55px_rgba(138,92,255,0.28)] md:h-[370px] print:h-[92mm] print:max-w-[112mm] print:rounded-[8mm]"
                 />
               </div>
 
-              <div className="theme-neon-shell mt-6 rounded-[30px] px-6 py-5 print:mt-[5mm] print:rounded-[8mm] print:px-[6mm] print:py-[5mm]">
+              <div className="theme-neon-shell mt-5 rounded-[30px] px-6 py-4 print:mt-[4mm] print:rounded-[8mm] print:px-[6mm] print:py-[4mm]">
                 <h2 className="theme-neon-heading text-3xl font-black uppercase tracking-[0.14em] md:text-5xl print:text-[12mm]">
                   {dj.name}
                 </h2>
               </div>
 
-              <div className="mt-8 flex flex-col items-center gap-5 print:mt-[6mm] print:gap-[4mm]">
-                <div className="theme-neon-panel rounded-[34px] p-5 md:p-7 print:rounded-[8mm] print:p-[5mm]">
-                  <div className="rounded-[24px] bg-white p-5 shadow-[0_18px_40px_rgba(0,0,0,0.22)] print:rounded-[6mm] print:p-[4mm]">
+              <div className="mt-6 flex flex-col items-center gap-4 print:mt-[5mm] print:gap-[3mm]">
+                <div className="theme-neon-panel rounded-[34px] p-4 md:p-6 print:rounded-[8mm] print:p-[4mm]">
+                  <div className="rounded-[24px] bg-white p-4 shadow-[0_18px_40px_rgba(0,0,0,0.22)] print:rounded-[6mm] print:p-[3.5mm]">
                     <img
                       src={dj.qr}
                       alt={`QR code para votar em ${dj.name}`}
-                      className="w-64 md:w-72 print:w-[58mm]"
+                      className="w-56 md:w-64 print:w-[52mm]"
                     />
                   </div>
                 </div>
 
-                <div className="theme-neon-shell rounded-[28px] px-8 py-6 print:rounded-[8mm] print:px-[6mm] print:py-[5mm]">
-                  <p className="theme-neon-heading text-2xl font-bold uppercase tracking-[0.12em] md:text-3xl print:text-[7mm]">
+                <div className="theme-neon-shell rounded-[28px] px-8 py-5 print:rounded-[8mm] print:px-[6mm] print:py-[4mm]">
+                  <p className="theme-neon-heading text-2xl font-bold uppercase tracking-[0.12em] md:text-3xl print:text-[6.4mm]">
                     Faz scan e vota
                   </p>
 
-                  <p className="theme-neon-muted mt-3 text-base md:text-xl print:mt-[3mm] print:text-[4.6mm]">
+                  <p className="theme-neon-muted mt-2 text-base md:text-lg print:mt-[2.5mm] print:text-[4.2mm]">
                     Aponta a câmara ao QR code e regista o teu voto em segundos.
                   </p>
                 </div>
