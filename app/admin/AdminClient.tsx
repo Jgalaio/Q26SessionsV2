@@ -7,6 +7,21 @@ import type { ReactNode } from 'react'
 type Tab = 'djs' | 'ranking' | 'control'
 type BrandAssetTarget = 'home' | 'vote' | 'poster' | 'logo'
 
+const adminInputClass =
+  'w-full rounded-2xl border border-white/12 bg-[#0c1230]/82 px-4 py-3 text-white placeholder:text-white/38 outline-none transition focus:border-cyan-300/60 focus:bg-[#11183e]'
+
+const adminFileInputClass =
+  'block w-full cursor-pointer rounded-2xl border border-dashed border-white/16 bg-white/6 px-4 py-3 text-sm text-white/78 file:mr-4 file:rounded-xl file:border-0 file:bg-white/12 file:px-4 file:py-2 file:font-semibold file:text-white hover:border-fuchsia-300/35'
+
+const adminPrimaryBtnClass =
+  'rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-5 py-3 font-bold text-white shadow-[0_0_28px_rgba(255,88,208,0.24)] transition hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100'
+
+const adminSecondaryBtnClass =
+  'rounded-2xl border border-white/12 bg-white/8 px-5 py-3 font-bold text-white transition hover:bg-white/12 disabled:opacity-50'
+
+const adminDangerBtnClass =
+  'rounded-2xl bg-red-500/90 px-5 py-3 font-bold text-white transition hover:bg-red-500 disabled:opacity-50'
+
 export default function AdminClient() {
   const [tab, setTab] = useState<Tab>('djs')
 
@@ -382,297 +397,545 @@ export default function AdminClient() {
     window.location.href = '/admin/login'
   }
 
+  const configuredAssets = [
+    homeBackgroundUrl,
+    voteBackgroundUrl,
+    posterBackgroundUrl,
+    logoUrl,
+  ].filter(Boolean).length
+
+  const totalVotes = ranking.reduce(
+    (sum, dj) => sum + Number(dj.votes || 0),
+    0
+  )
+
+  const leadingDj = ranking[0]
+  const topVotes = Number(leadingDj?.votes || 0)
+
   return (
-    <main className="p-6 max-w-7xl mx-auto">
+    <main className="theme-neon-page relative min-h-screen overflow-hidden">
+      <div className="theme-neon-overlay absolute inset-0" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(255,88,208,0.2),transparent_22%),radial-gradient(circle_at_88%_10%,rgba(110,231,255,0.16),transparent_18%),radial-gradient(circle_at_50%_100%,rgba(138,92,255,0.18),transparent_30%)]" />
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-black">Admin Panel</h1>
-          {!realtimeEnabled && (
-            <p className="text-sm text-amber-600 mt-1">
-              Atualizacao automatica em modo fallback.
-            </p>
-          )}
-        </div>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
+        <section className="theme-neon-shell rounded-[34px] p-5 md:p-8">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+            <div className="max-w-2xl">
+              <div className="theme-neon-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.32em]">
+                Painel de controlo
+              </div>
 
-        <div className="flex gap-2">
+              <h1 className="theme-neon-heading mt-5 text-3xl font-black uppercase tracking-[0.12em] md:text-5xl">
+                Admin Q26 Sessions
+              </h1>
 
-          <a
-            href="/live"
-            target="_blank"
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-cyan-500 text-white font-bold"
-          >
-            🎥 LIVE
-          </a>
+              <p className="theme-neon-muted mt-4 max-w-xl text-sm leading-6 md:text-base">
+                Gere DJs, branding, ranking e materiais de evento a partir de
+                um único painel com visual alinhado ao tema da votação.
+              </p>
 
-          <a
-            href="/admin/analytics"
-            className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold"
-          >
-            📊 Analytics
-          </a>
+              {!realtimeEnabled && (
+                <div className="mt-4 inline-flex rounded-full border border-amber-300/24 bg-amber-300/10 px-4 py-2 text-sm text-amber-100">
+                  Atualizacao automatica em modo fallback.
+                </div>
+              )}
+            </div>
 
-          <a
-            href="/admin/dj-qrcodes"
-             target="_blank"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-xl"
-          >
-            📱 QR DJs
-          </a>
+            <div className="grid gap-3 sm:grid-cols-2 xl:w-[430px]">
+              <a
+                href="/live"
+                target="_blank"
+                className={`${adminPrimaryBtnClass} text-center`}
+              >
+                🎥 LIVE
+              </a>
 
-          <a
-            href="/admin/dj-poster"
-              target="_blank"
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold"
-          >
-            🎨 Poster DJs
-          </a>
+              <a
+                href="/admin/analytics"
+                className={`${adminSecondaryBtnClass} text-center`}
+              >
+                📊 Analytics
+              </a>
 
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded-xl"
-          >
-            Logout
-          </button>
+              <a
+                href="/admin/dj-qrcodes"
+                target="_blank"
+                className={`${adminSecondaryBtnClass} text-center`}
+              >
+                📱 QR DJs
+              </a>
 
-        </div>
-      </div>
+              <a
+                href="/admin/dj-poster"
+                target="_blank"
+                className={`${adminSecondaryBtnClass} text-center`}
+              >
+                🎨 Poster DJs
+              </a>
 
-      {/* TABS */}
-      <div className="flex gap-3 mb-8">
-        <button onClick={() => setTab('djs')} className={tabBtn(tab === 'djs')}>DJs</button>
-        <button onClick={() => setTab('ranking')} className={tabBtn(tab === 'ranking')}>Ranking</button>
-        <button onClick={() => setTab('control')} className={tabBtn(tab === 'control')}>Controlo</button>
-      </div>
+              <a
+                href="/admin/print"
+                target="_blank"
+                className={`${adminSecondaryBtnClass} text-center sm:col-span-2`}
+              >
+                🖨️ Impressão de códigos
+              </a>
 
-      {/* ================= DJs ================= */}
-      {tab === 'djs' && (
-        <div>
-
-          <div className="mb-8 p-4 border rounded-xl">
-            <h3 className="font-bold mb-3">Adicionar DJ</h3>
-
-            <input
-              placeholder="Nome do DJ"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="border p-2 w-full mb-3 rounded"
-            />
-
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="mb-3"
-            />
-
-            <button
-              onClick={handleAdd}
-              className="px-4 py-2 bg-black text-white rounded"
-            >
-              ➕ Adicionar
-            </button>
+              <button
+                onClick={handleLogout}
+                className={`${adminDangerBtnClass} sm:col-span-2`}
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {djs.map((dj) => (
-              <div key={dj.id} className="border rounded-xl p-3">
-                <img src={dj.image_url} className="h-40 w-full object-cover rounded mb-2" />
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <AdminStatCard
+              label="Estado"
+              value={votingOpen ? 'Votação aberta' : 'Votação fechada'}
+              detail={votingOpen ? 'Pronta para receber votos' : 'Bloqueada para o público'}
+            />
+            <AdminStatCard
+              label="DJs"
+              value={String(djs.length)}
+              detail="Artistas disponíveis para voto"
+            />
+            <AdminStatCard
+              label="Total de votos"
+              value={String(totalVotes)}
+              detail={
+                leadingDj
+                  ? `Lider atual: ${leadingDj.name}`
+                  : 'Sem líder definido'
+              }
+            />
+            <AdminStatCard
+              label="Assets"
+              value={`${configuredAssets}/4`}
+              detail="Home, voto, poster e logo"
+            />
+          </div>
+        </section>
 
-                {editingId === dj.id ? (
-                  <>
-                    <input
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      className="border p-2 w-full mb-2"
-                    />
-                    <button onClick={() => updateName(dj.id)}>Guardar</button>
-                  </>
-                ) : (
-                  <p className="font-bold">{dj.name}</p>
+        <div className="theme-neon-panel mt-6 flex flex-wrap gap-3 rounded-[28px] p-3">
+          <button onClick={() => setTab('djs')} className={tabBtn(tab === 'djs')}>
+            DJs
+          </button>
+          <button
+            onClick={() => setTab('ranking')}
+            className={tabBtn(tab === 'ranking')}
+          >
+            Ranking
+          </button>
+          <button
+            onClick={() => setTab('control')}
+            className={tabBtn(tab === 'control')}
+          >
+            Controlo
+          </button>
+        </div>
+
+        {tab === 'djs' && (
+          <section className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+            <div className="theme-neon-shell rounded-[30px] p-6">
+              <div className="mb-6">
+                <p className="theme-neon-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em]">
+                  Catálogo
+                </p>
+                <h2 className="theme-neon-heading mt-4 text-2xl font-black">
+                  Adicionar DJ
+                </h2>
+                <p className="theme-neon-muted mt-2 text-sm">
+                  Cria um novo cartão de votação com nome e imagem prontos para
+                  a home, live e posters.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <input
+                  placeholder="Nome do DJ"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className={adminInputClass}
+                />
+
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className={adminFileInputClass}
+                />
+
+                {file && (
+                  <p className="text-sm text-white/65">
+                    Ficheiro selecionado: {file.name}
+                  </p>
                 )}
 
-                <div className="flex gap-2 mt-2">
-                  <button onClick={() => {
-                    setEditingId(dj.id)
-                    setNewName(dj.name)
-                  }}>✏️</button>
+                <button onClick={handleAdd} className={`${adminPrimaryBtnClass} w-full`}>
+                  ➕ Adicionar DJ
+                </button>
+              </div>
+            </div>
 
-                  <button onClick={() => deleteDj(dj.id)}>❌</button>
+            <div className="space-y-5">
+              <div className="theme-neon-shell rounded-[30px] p-5 md:p-6">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <h2 className="theme-neon-heading text-2xl font-black">
+                      Lista de DJs
+                    </h2>
+                    <p className="theme-neon-muted mt-2 text-sm">
+                      Edita rapidamente os nomes e confirma as imagens ativas.
+                    </p>
+                  </div>
+
+                  <div className="theme-neon-stat rounded-2xl px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.24em] text-white/55">
+                      Total
+                    </p>
+                    <p className="theme-neon-heading text-2xl font-black">
+                      {djs.length}
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
 
-        </div>
-      )}
+              <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
+                {djs.map((dj, index) => (
+                  <article
+                    key={dj.id}
+                    className="theme-neon-panel overflow-hidden rounded-[28px]"
+                  >
+                    <div className="relative">
+                      <img
+                        src={dj.image_url}
+                        alt={dj.name}
+                        className="h-48 w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#050513]/92 via-transparent to-transparent" />
+                      <div className="theme-neon-chip absolute left-4 top-4 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]">
+                        DJ #{index + 1}
+                      </div>
+                    </div>
 
-      {/* ================= RANKING ================= */}
-      {tab === 'ranking' && (
-        <div className="space-y-3">
-          {ranking.map((dj, i) => (
-            <div key={dj.id} className="flex items-center gap-4 border p-3 rounded-xl">
-              <div className="w-10 font-black">#{i + 1}</div>
-              <img src={dj.image_url} className="w-12 h-12 rounded object-cover" />
-              <div className="flex-1">{dj.name}</div>
-              <div className="font-bold">{dj.votes}</div>
+                    <div className="p-4">
+                      {editingId === dj.id ? (
+                        <div className="space-y-3">
+                          <input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            className={adminInputClass}
+                          />
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => updateName(dj.id)}
+                              className={`${adminPrimaryBtnClass} flex-1 px-4 py-3 text-sm`}
+                            >
+                              Guardar
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setEditingId(null)
+                                setNewName('')
+                              }}
+                              className={`${adminSecondaryBtnClass} px-4 py-3 text-sm`}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="theme-neon-heading text-xl font-black">
+                            {dj.name}
+                          </p>
+
+                          <p className="mt-2 text-sm text-white/60">
+                            ID: {dj.id}
+                          </p>
+                        </>
+                      )}
+
+                      {editingId !== dj.id && (
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingId(dj.id)
+                              setNewName(dj.name)
+                            }}
+                            className={`${adminSecondaryBtnClass} flex-1 px-4 py-3 text-sm`}
+                          >
+                            ✏️ Editar
+                          </button>
+
+                          <button
+                            onClick={() => deleteDj(dj.id)}
+                            className={`${adminDangerBtnClass} px-4 py-3 text-sm`}
+                          >
+                            ❌
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+          </section>
+        )}
 
-      {/* ================= CONTROL ================= */}
-      {tab === 'control' && (
-        <div className="space-y-6">
+        {tab === 'ranking' && (
+          <section className="theme-neon-shell mt-6 rounded-[30px] p-5 md:p-6">
+            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="theme-neon-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em]">
+                  Ranking ao vivo
+                </p>
+                <h2 className="theme-neon-heading mt-4 text-2xl font-black">
+                  Classificação atual
+                </h2>
+                <p className="theme-neon-muted mt-2 text-sm">
+                  Vista rápida da corrida com destaque visual para o líder.
+                </p>
+              </div>
 
-          <div className="p-6 border rounded-xl">
-            <h2 className="text-xl font-bold mb-2">Estado da votação</h2>
+              <div className="theme-neon-stat rounded-2xl px-4 py-3">
+                <p className="text-xs uppercase tracking-[0.24em] text-white/55">
+                  Votos totais
+                </p>
+                <p className="theme-neon-heading text-2xl font-black">
+                  {totalVotes}
+                </p>
+              </div>
+            </div>
 
-            <p className="mb-4">
-              <span className={votingOpen ? 'text-green-500' : 'text-red-500'}>
-                {votingOpen ? 'ABERTA' : 'FECHADA'}
-              </span>
-            </p>
+            <div className="space-y-4">
+              {ranking.map((dj, i) => {
+                const progress =
+                  topVotes > 0 ? Math.max(8, Math.round((dj.votes / topVotes) * 100)) : 8
 
-            <button
-              onClick={toggleVoting}
-              className="px-6 py-3 bg-black text-white rounded-xl"
-            >
-              {votingOpen ? 'Fechar votação' : 'Abrir votação'}
-            </button>
-          </div>
+                return (
+                  <div
+                    key={dj.id}
+                    className="theme-neon-panel rounded-[26px] p-4 md:p-5"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="theme-neon-stat flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-black">
+                        #{i + 1}
+                      </div>
 
-          <div className="p-6 border rounded-xl">
-            <h2 className="text-xl font-bold mb-3">Branding e fundos</h2>
+                      <img
+                        src={dj.image_url}
+                        alt={dj.name}
+                        className="h-14 w-14 rounded-2xl object-cover border border-white/18"
+                      />
 
-            <div className="grid gap-6 md:grid-cols-4">
-              <AssetCard
-                title="Página principal"
-                currentImage={homeBackgroundUrl}
-                selectedFile={homeBackgroundFile}
-                saving={savingAsset === 'home'}
-                onFileChange={setHomeBackgroundFile}
-                onSave={() => void saveAssetImage('home')}
-                onClear={() => void clearAssetImage('home')}
-              />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                          <p className="theme-neon-heading truncate text-lg font-black">
+                            {dj.name}
+                          </p>
 
-              <AssetCard
-                title="Página de voto"
-                currentImage={voteBackgroundUrl}
-                selectedFile={voteBackgroundFile}
-                saving={savingAsset === 'vote'}
-                onFileChange={setVoteBackgroundFile}
-                onSave={() => void saveAssetImage('vote')}
-                onClear={() => void clearAssetImage('vote')}
-              />
+                          <div className="theme-neon-chip inline-flex rounded-full px-3 py-1 text-sm font-semibold">
+                            {dj.votes} votos
+                          </div>
+                        </div>
 
-              <AssetCard
-                title="Poster"
-                currentImage={posterBackgroundUrl}
-                selectedFile={posterBackgroundFile}
-                saving={savingAsset === 'poster'}
-                onFileChange={setPosterBackgroundFile}
-                onSave={() => void saveAssetImage('poster')}
-                onClear={() => void clearAssetImage('poster')}
-              />
-
-              <AssetCard
-                title="Logo"
-                currentImage={logoUrl}
-                selectedFile={logoFile}
-                saving={savingAsset === 'logo'}
-                previewMode="contain"
-                onFileChange={setLogoFile}
-                onSave={() => void saveAssetImage('logo')}
-                onClear={() => void clearAssetImage('logo')}
-              >
-                <div className="mb-4 rounded-xl border border-zinc-200 bg-white p-3">
-                  <p className="mb-2 text-sm font-semibold text-zinc-700">
-                    Tamanho do logo por página
-                  </p>
-
-                  <div className="space-y-4">
-                    <LogoScaleControl
-                      label="Home"
-                      value={homeLogoScalePercent}
-                      onChange={setHomeLogoScalePercent}
-                    />
-
-                    <LogoScaleControl
-                      label="Voto"
-                      value={voteLogoScalePercent}
-                      onChange={setVoteLogoScalePercent}
-                    />
-
-                    <LogoScaleControl
-                      label="Poster"
-                      value={posterLogoScalePercent}
-                      onChange={setPosterLogoScalePercent}
-                    />
+                        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-fuchsia-400 via-violet-400 to-cyan-300 shadow-[0_0_18px_rgba(110,231,255,0.34)]"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                )
+              })}
 
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      onClick={() => void saveLogoScale()}
-                      disabled={savingLogoScale}
-                      className="rounded-xl border border-zinc-300 bg-white px-4 py-2 font-bold disabled:opacity-50"
-                    >
-                      {savingLogoScale ? 'A guardar...' : 'Guardar tamanhos'}
-                    </button>
-                  </div>
-
-                  <p className="mt-2 text-xs text-zinc-500">
-                    O sistema mantém sempre a proporção do logo.
-                  </p>
+              {ranking.length === 0 && (
+                <div className="theme-neon-panel rounded-[26px] p-6 text-center text-white/65">
+                  Ainda não existem votos para mostrar no ranking.
                 </div>
-              </AssetCard>
+              )}
             </div>
-          </div>
+          </section>
+        )}
 
-          <div className="p-6 border rounded-xl">
-            <h2 className="text-xl font-bold mb-2">Reset</h2>
+        {tab === 'control' && (
+          <section className="mt-6 space-y-6">
+            <div className="theme-neon-shell rounded-[30px] p-5 md:p-6">
+              <div className="mb-5">
+                <p className="theme-neon-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em]">
+                  Branding e fundos
+                </p>
+                <h2 className="theme-neon-heading mt-4 text-2xl font-black">
+                  Identidade visual
+                </h2>
+                <p className="theme-neon-muted mt-2 text-sm">
+                  Atualiza os fundos principais, o poster e o logo da experiência.
+                </p>
+              </div>
 
-            <button
-              onClick={resetVotes}
-              className="px-6 py-3 bg-red-500 text-white rounded-xl w-full"
-            >
-              {resetLoading ? 'A resetar...' : '🔥 Resetar votos'}
-            </button>
-          </div>
+              <div className="grid gap-6 md:grid-cols-2 2xl:grid-cols-4">
+                <AssetCard
+                  title="Página principal"
+                  currentImage={homeBackgroundUrl}
+                  selectedFile={homeBackgroundFile}
+                  saving={savingAsset === 'home'}
+                  onFileChange={setHomeBackgroundFile}
+                  onSave={() => void saveAssetImage('home')}
+                  onClear={() => void clearAssetImage('home')}
+                />
 
-          <div className="p-6 border rounded-xl">
-            <h2 className="text-xl font-bold mb-3">Gerar códigos</h2>
+                <AssetCard
+                  title="Página de voto"
+                  currentImage={voteBackgroundUrl}
+                  selectedFile={voteBackgroundFile}
+                  saving={savingAsset === 'vote'}
+                  onFileChange={setVoteBackgroundFile}
+                  onSave={() => void saveAssetImage('vote')}
+                  onClear={() => void clearAssetImage('vote')}
+                />
 
-            <input
-              type="number"
-              value={totalCodes}
-              onChange={(e) => setTotalCodes(Number(e.target.value))}
-              className="border p-3 rounded w-full mb-4"
-            />
+                <AssetCard
+                  title="Poster"
+                  currentImage={posterBackgroundUrl}
+                  selectedFile={posterBackgroundFile}
+                  saving={savingAsset === 'poster'}
+                  onFileChange={setPosterBackgroundFile}
+                  onSave={() => void saveAssetImage('poster')}
+                  onClear={() => void clearAssetImage('poster')}
+                />
 
-            <button
-              onClick={handleGenerateCodes}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl w-full"
-            >
-              {loadingCodes ? 'A gerar...' : 'Gerar códigos'}
-            </button>
-          </div>
+                <AssetCard
+                  title="Logo"
+                  currentImage={logoUrl}
+                  selectedFile={logoFile}
+                  saving={savingAsset === 'logo'}
+                  previewMode="contain"
+                  onFileChange={setLogoFile}
+                  onSave={() => void saveAssetImage('logo')}
+                  onClear={() => void clearAssetImage('logo')}
+                >
+                  <div className="theme-neon-shell mb-4 rounded-[24px] p-4">
+                    <p className="mb-2 text-sm font-semibold text-white/85">
+                      Tamanho do logo por página
+                    </p>
 
-          <div className="p-6 border rounded-xl">
-            <h2 className="text-xl font-bold mb-3">Impressão de senhas</h2>
+                    <div className="space-y-4">
+                      <LogoScaleControl
+                        label="Home"
+                        value={homeLogoScalePercent}
+                        onChange={setHomeLogoScalePercent}
+                      />
 
-            <a
-              href="/admin/print"
-              target="_blank"
-              className="block w-full text-center px-6 py-3 bg-purple-600 text-white rounded-xl"
-            >
-              🖨️ Abrir impressão de códigos
-            </a>
-          </div>
+                      <LogoScaleControl
+                        label="Voto"
+                        value={voteLogoScalePercent}
+                        onChange={setVoteLogoScalePercent}
+                      />
 
-        </div>
-      )}
+                      <LogoScaleControl
+                        label="Poster"
+                        value={posterLogoScalePercent}
+                        onChange={setPosterLogoScalePercent}
+                      />
+                    </div>
 
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        onClick={() => void saveLogoScale()}
+                        disabled={savingLogoScale}
+                        className={`${adminSecondaryBtnClass} px-4 py-2 text-sm`}
+                      >
+                        {savingLogoScale ? 'A guardar...' : 'Guardar tamanhos'}
+                      </button>
+                    </div>
+
+                    <p className="mt-2 text-xs text-white/52">
+                      O sistema mantém sempre a proporção do logo.
+                    </p>
+                  </div>
+                </AssetCard>
+              </div>
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-3">
+              <div className="theme-neon-shell rounded-[30px] p-6">
+                <h2 className="theme-neon-heading text-xl font-black">
+                  Estado da votação
+                </h2>
+                <p className="theme-neon-muted mt-2 text-sm">
+                  Liga ou bloqueia a votação pública em tempo real.
+                </p>
+
+                <div className="mt-5">
+                  <span
+                    className={`inline-flex rounded-full px-4 py-2 text-sm font-bold ${
+                      votingOpen
+                        ? 'bg-emerald-400/16 text-emerald-100 border border-emerald-300/24'
+                        : 'bg-red-400/16 text-red-100 border border-red-300/24'
+                    }`}
+                  >
+                    {votingOpen ? 'ABERTA' : 'FECHADA'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={toggleVoting}
+                  className={`${adminPrimaryBtnClass} mt-5 w-full`}
+                >
+                  {votingOpen ? 'Fechar votação' : 'Abrir votação'}
+                </button>
+              </div>
+
+              <div className="theme-neon-shell rounded-[30px] p-6">
+                <h2 className="theme-neon-heading text-xl font-black">
+                  Gerar códigos
+                </h2>
+                <p className="theme-neon-muted mt-2 text-sm">
+                  Cria novas senhas para distribuição com o volume que precisares.
+                </p>
+
+                <input
+                  type="number"
+                  value={totalCodes}
+                  onChange={(e) => setTotalCodes(Number(e.target.value))}
+                  className={`${adminInputClass} mt-5`}
+                />
+
+                <button
+                  onClick={handleGenerateCodes}
+                  className={`${adminSecondaryBtnClass} mt-4 w-full`}
+                >
+                  {loadingCodes ? 'A gerar...' : 'Gerar códigos'}
+                </button>
+              </div>
+
+              <div className="theme-neon-shell rounded-[30px] p-6">
+                <h2 className="theme-neon-heading text-xl font-black">
+                  Reset de votos
+                </h2>
+                <p className="theme-neon-muted mt-2 text-sm">
+                  Usa apenas quando quiseres reiniciar a competição do zero.
+                </p>
+
+                <button
+                  onClick={resetVotes}
+                  className={`${adminDangerBtnClass} mt-5 w-full`}
+                >
+                  {resetLoading ? 'A resetar...' : '🔥 Resetar votos'}
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
     </main>
   )
 }
