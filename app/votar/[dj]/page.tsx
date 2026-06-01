@@ -98,9 +98,17 @@ export default function VotePage() {
       const scanner = scannerRef.current
 
       if (scanner) {
-        void scanner.stop().catch(() => {})
-        void scanner.clear().catch(() => {})
         scannerRef.current = null
+
+        void (async () => {
+          try {
+            await scanner.stop()
+          } catch {}
+
+          try {
+            scanner.clear()
+          } catch {}
+        })()
       }
     }
   }, [dj])
