@@ -61,6 +61,20 @@ export async function POST(req: Request) {
     updates.vote_background_url = body.vote_background_url?.trim() || null
   }
 
+  if ('poster_background_url' in body) {
+    if (
+      body.poster_background_url !== null &&
+      typeof body.poster_background_url !== 'string'
+    ) {
+      return NextResponse.json(
+        { error: 'Imagem do poster invalida' },
+        { status: 400 }
+      )
+    }
+
+    updates.poster_background_url = body.poster_background_url?.trim() || null
+  }
+
   if ('logo_url' in body) {
     if (body.logo_url !== null && typeof body.logo_url !== 'string') {
       return NextResponse.json(

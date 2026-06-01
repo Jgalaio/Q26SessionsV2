@@ -7,6 +7,7 @@ export default function DjPosterPage() {
   const [items, setItems] = useState<any[]>([])
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [posterLogoScalePercent, setPosterLogoScalePercent] = useState(100)
+  const [posterBackgroundUrl, setPosterBackgroundUrl] = useState<string | null>(null)
 
   useEffect(() => {
     void fetchDjs()
@@ -38,6 +39,7 @@ export default function DjPosterPage() {
     const res = await fetch('/api/settings')
     const data = await res.json()
     setLogoUrl(data?.logo_url || null)
+    setPosterBackgroundUrl(data?.poster_background_url || null)
     setPosterLogoScalePercent(
       data?.poster_logo_scale_percent ?? data?.logo_scale_percent ?? 100
     )
@@ -60,9 +62,17 @@ export default function DjPosterPage() {
           key={i}
           className="w-full h-[420mm] flex flex-col items-center justify-between p-16 text-center relative print:break-after-page"
         >
+          {posterBackgroundUrl && (
+            <img
+              src={posterBackgroundUrl}
+              alt="Fundo do poster"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
 
           {/* FUNDO */}
-          <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-black to-cyan-600/30 blur-3xl" />
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-black to-cyan-600/30" />
 
           {/* LOGO */}
           <img

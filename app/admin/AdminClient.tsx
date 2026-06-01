@@ -5,7 +5,7 @@ import { tryGetSupabaseClient } from '@/lib/supabase'
 import type { ReactNode } from 'react'
 
 type Tab = 'djs' | 'ranking' | 'control'
-type BrandAssetTarget = 'home' | 'vote' | 'logo'
+type BrandAssetTarget = 'home' | 'vote' | 'poster' | 'logo'
 
 export default function AdminClient() {
   const [tab, setTab] = useState<Tab>('djs')
@@ -15,6 +15,7 @@ export default function AdminClient() {
   const [votingOpen, setVotingOpen] = useState(true)
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
+  const [posterBackgroundUrl, setPosterBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
   const [voteLogoScalePercent, setVoteLogoScalePercent] = useState(100)
@@ -25,6 +26,7 @@ export default function AdminClient() {
   const [file, setFile] = useState<File | null>(null)
   const [homeBackgroundFile, setHomeBackgroundFile] = useState<File | null>(null)
   const [voteBackgroundFile, setVoteBackgroundFile] = useState<File | null>(null)
+  const [posterBackgroundFile, setPosterBackgroundFile] = useState<File | null>(null)
   const [logoFile, setLogoFile] = useState<File | null>(null)
 
   const [totalCodes, setTotalCodes] = useState(1000)
@@ -189,6 +191,7 @@ export default function AdminClient() {
     setVotingOpen(Boolean(data?.voting_open))
     setHomeBackgroundUrl(data?.home_background_url || null)
     setVoteBackgroundUrl(data?.vote_background_url || null)
+    setPosterBackgroundUrl(data?.poster_background_url || null)
     setLogoUrl(data?.logo_url || null)
     const defaultScale = data?.logo_scale_percent ?? 100
     setHomeLogoScalePercent(data?.home_logo_scale_percent ?? defaultScale)
@@ -211,6 +214,8 @@ export default function AdminClient() {
         ? homeBackgroundFile
         : target === 'vote'
           ? voteBackgroundFile
+          : target === 'poster'
+            ? posterBackgroundFile
           : logoFile
 
     if (!selectedFile) {
@@ -232,6 +237,10 @@ export default function AdminClient() {
         await saveSettings({ vote_background_url: imageUrl })
         setVoteBackgroundUrl(imageUrl)
         setVoteBackgroundFile(null)
+      } else if (target === 'poster') {
+        await saveSettings({ poster_background_url: imageUrl })
+        setPosterBackgroundUrl(imageUrl)
+        setPosterBackgroundFile(null)
       } else {
         await saveSettings({ logo_url: imageUrl })
         setLogoUrl(imageUrl)
@@ -260,6 +269,10 @@ export default function AdminClient() {
         await saveSettings({ vote_background_url: null })
         setVoteBackgroundUrl(null)
         setVoteBackgroundFile(null)
+      } else if (target === 'poster') {
+        await saveSettings({ poster_background_url: null })
+        setPosterBackgroundUrl(null)
+        setPosterBackgroundFile(null)
       } else {
         await saveSettings({ logo_url: null })
         setLogoUrl(null)
@@ -532,7 +545,7 @@ export default function AdminClient() {
           <div className="p-6 border rounded-xl">
             <h2 className="text-xl font-bold mb-3">Branding e fundos</h2>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-4">
               <AssetCard
                 title="Página principal"
                 currentImage={homeBackgroundUrl}
@@ -551,6 +564,16 @@ export default function AdminClient() {
                 onFileChange={setVoteBackgroundFile}
                 onSave={() => void saveAssetImage('vote')}
                 onClear={() => void clearAssetImage('vote')}
+              />
+
+              <AssetCard
+                title="Poster"
+                currentImage={posterBackgroundUrl}
+                selectedFile={posterBackgroundFile}
+                saving={savingAsset === 'poster'}
+                onFileChange={setPosterBackgroundFile}
+                onSave={() => void saveAssetImage('poster')}
+                onClear={() => void clearAssetImage('poster')}
               />
 
               <AssetCard
