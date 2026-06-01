@@ -5,9 +5,11 @@ import QRCode from 'qrcode'
 
 export default function DjPosterPage() {
   const [items, setItems] = useState<any[]>([])
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchDjs()
+    void fetchDjs()
+    void fetchSettings()
   }, [])
 
   const fetchDjs = async () => {
@@ -29,6 +31,12 @@ export default function DjPosterPage() {
     )
 
     setItems(result)
+  }
+
+  const fetchSettings = async () => {
+    const res = await fetch('/api/settings')
+    const data = await res.json()
+    setLogoUrl(data?.logo_url || null)
   }
 
   return (
@@ -53,7 +61,7 @@ export default function DjPosterPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-black to-cyan-600/30 blur-3xl" />
 
           {/* LOGO */}
-          <img src="/logo.png" className="w-40 z-10" />
+          <img src={logoUrl || '/logo.png'} className="w-40 z-10" />
 
           {/* HEADER */}
           <div className="z-10">

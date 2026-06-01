@@ -25,6 +25,7 @@ export default function VotePage() {
   const [manualCode, setManualCode] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const lastScanRef = useRef<string | null>(null)
@@ -124,6 +125,7 @@ export default function VotePage() {
 
         if (isMounted) {
           setVoteBackgroundUrl(data?.vote_background_url || null)
+          setLogoUrl(data?.logo_url || null)
         }
       } catch {}
     }
@@ -266,6 +268,14 @@ export default function VotePage() {
       )}
 
       <div className="relative z-10 max-w-md w-full">
+        {logoUrl && (
+          <img
+            src={logoUrl}
+            alt="Logo"
+            className="mx-auto mb-5 max-h-20 w-auto"
+          />
+        )}
+
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-zinc-200">
           <div className="relative group">
             <img

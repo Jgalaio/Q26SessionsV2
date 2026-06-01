@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { tryGetSupabaseClient } from '@/lib/supabase'
 
 type Tab = 'djs' | 'ranking' | 'control'
-type BackgroundTarget = 'home' | 'vote'
+type BrandAssetTarget = 'home' | 'vote' | 'logo'
 
 export default function AdminClient() {
   const [tab, setTab] = useState<Tab>('djs')
@@ -14,18 +14,20 @@ export default function AdminClient() {
   const [votingOpen, setVotingOpen] = useState(true)
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [homeBackgroundFile, setHomeBackgroundFile] = useState<File | null>(null)
   const [voteBackgroundFile, setVoteBackgroundFile] = useState<File | null>(null)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
 
   const [totalCodes, setTotalCodes] = useState(1000)
   const [loadingCodes, setLoadingCodes] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
   const [realtimeEnabled, setRealtimeEnabled] = useState(false)
-  const [savingBackground, setSavingBackground] = useState<BackgroundTarget | null>(null)
+  const [savingAsset, setSavingAsset] = useState<BrandAssetTarget | null>(null)
 
   // ================= INIT =================
   useEffect(() => {
@@ -180,6 +182,7 @@ export default function AdminClient() {
     setVotingOpen(Boolean(data?.voting_open))
     setHomeBackgroundUrl(data?.home_background_url || null)
     setVoteBackgroundUrl(data?.vote_background_url || null)
+    setLogoUrl(data?.logo_url || null)
   }
 
   const toggleVoting = async () => {
@@ -191,61 +194,74 @@ export default function AdminClient() {
     }
   }
 
-  const saveBackgroundImage = async (target: BackgroundTarget) => {
+  const saveAssetImage = async (target: BrandAssetTarget) => {
     const selectedFile =
-      target === 'home' ? homeBackgroundFile : voteBackgroundFile
+      target === 'home'
+        ? homeBackgroundFile
+        : target === 'vote'
+          ? voteBackgroundFile
+          : logoFile
 
     if (!selectedFile) {
       alert('Escolhe uma imagem primeiro')
       return
     }
 
-    setSavingBackground(target)
+    setSavingAsset(target)
 
     try {
-      const imageUrl = await uploadImage(selectedFile, 'backgrounds')
+      const folder = target === 'logo' ? 'branding' : 'backgrounds'
+      const imageUrl = await uploadImage(selectedFile, folder)
 
       if (target === 'home') {
         await saveSettings({ home_background_url: imageUrl })
         setHomeBackgroundUrl(imageUrl)
         setHomeBackgroundFile(null)
-      } else {
+      } else if (target === 'vote') {
         await saveSettings({ vote_background_url: imageUrl })
         setVoteBackgroundUrl(imageUrl)
         setVoteBackgroundFile(null)
+      } else {
+        await saveSettings({ logo_url: imageUrl })
+        setLogoUrl(imageUrl)
+        setLogoFile(null)
       }
     } catch (error) {
       alert(
         error instanceof Error
           ? error.message
-          : 'Erro ao atualizar fundo'
+          : 'Erro ao atualizar asset'
       )
     } finally {
-      setSavingBackground(null)
+      setSavingAsset(null)
     }
   }
 
-  const clearBackgroundImage = async (target: BackgroundTarget) => {
-    setSavingBackground(target)
+  const clearAssetImage = async (target: BrandAssetTarget) => {
+    setSavingAsset(target)
 
     try {
       if (target === 'home') {
         await saveSettings({ home_background_url: null })
         setHomeBackgroundUrl(null)
         setHomeBackgroundFile(null)
-      } else {
+      } else if (target === 'vote') {
         await saveSettings({ vote_background_url: null })
         setVoteBackgroundUrl(null)
         setVoteBackgroundFile(null)
+      } else {
+        await saveSettings({ logo_url: null })
+        setLogoUrl(null)
+        setLogoFile(null)
       }
     } catch (error) {
       alert(
         error instanceof Error
           ? error.message
-          : 'Erro ao remover fundo'
+          : 'Erro ao remover asset'
       )
     } finally {
-      setSavingBackground(null)
+      setSavingAsset(null)
     }
   }
 
@@ -472,27 +488,37 @@ export default function AdminClient() {
           </div>
 
           <div className="p-6 border rounded-xl">
-            <h2 className="text-xl font-bold mb-3">Fundos das páginas</h2>
+            <h2 className="text-xl font-bold mb-3">Branding e fundos</h2>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <BackgroundCard
+            <div className="grid gap-6 md:grid-cols-3">
+              <AssetCard
                 title="Página principal"
                 currentImage={homeBackgroundUrl}
                 selectedFile={homeBackgroundFile}
-                saving={savingBackground === 'home'}
+                saving={savingAsset === 'home'}
                 onFileChange={setHomeBackgroundFile}
-                onSave={() => void saveBackgroundImage('home')}
-                onClear={() => void clearBackgroundImage('home')}
+                onSave={() => void saveAssetImage('home')}
+                onClear={() => void clearAssetImage('home')}
               />
 
-              <BackgroundCard
+              <AssetCard
                 title="Página de voto"
                 currentImage={voteBackgroundUrl}
                 selectedFile={voteBackgroundFile}
-                saving={savingBackground === 'vote'}
+                saving={savingAsset === 'vote'}
                 onFileChange={setVoteBackgroundFile}
-                onSave={() => void saveBackgroundImage('vote')}
-                onClear={() => void clearBackgroundImage('vote')}
+                onSave={() => void saveAssetImage('vote')}
+                onClear={() => void clearAssetImage('vote')}
+              />
+
+              <AssetCard
+                title="Logo"
+                currentImage={logoUrl}
+                selectedFile={logoFile}
+                saving={savingAsset === 'logo'}
+                onFileChange={setLogoFile}
+                onSave={() => void saveAssetImage('logo')}
+                onClear={() => void clearAssetImage('logo')}
               />
             </div>
           </div>
@@ -551,7 +577,7 @@ function tabBtn(active: boolean) {
   }`
 }
 
-type BackgroundCardProps = {
+type AssetCardProps = {
   title: string
   currentImage: string | null
   selectedFile: File | null
@@ -561,7 +587,7 @@ type BackgroundCardProps = {
   onClear: () => void
 }
 
-function BackgroundCard({
+function AssetCard({
   title,
   currentImage,
   selectedFile,
@@ -569,7 +595,7 @@ function BackgroundCard({
   onFileChange,
   onSave,
   onClear,
-}: BackgroundCardProps) {
+}: AssetCardProps) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
       <p className="font-bold mb-3">{title}</p>
@@ -582,7 +608,7 @@ function BackgroundCard({
         />
       ) : (
         <div className="mb-3 flex h-40 items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white text-sm text-zinc-500">
-          Nenhum fundo definido
+          Nenhum asset definido
         </div>
       )}
 

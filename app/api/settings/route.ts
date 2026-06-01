@@ -61,6 +61,17 @@ export async function POST(req: Request) {
     updates.vote_background_url = body.vote_background_url?.trim() || null
   }
 
+  if ('logo_url' in body) {
+    if (body.logo_url !== null && typeof body.logo_url !== 'string') {
+      return NextResponse.json(
+        { error: 'Logo invalido' },
+        { status: 400 }
+      )
+    }
+
+    updates.logo_url = body.logo_url?.trim() || null
+  }
+
   if (Object.keys(updates).length === 0) {
     return NextResponse.json(
       { error: 'Nenhuma alteracao recebida' },

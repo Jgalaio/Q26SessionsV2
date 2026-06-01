@@ -7,6 +7,7 @@ export default function HomePage() {
   const [djs, setDjs] = useState<any[]>([])
   const [totalVotes, setTotalVotes] = useState(0)
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   useEffect(() => {
     fetchRanking()
@@ -27,6 +28,7 @@ export default function HomePage() {
     const res = await fetch('/api/settings')
     const data = await res.json()
     setHomeBackgroundUrl(data?.home_background_url || null)
+    setLogoUrl(data?.logo_url || null)
   }
 
   return (
@@ -46,6 +48,14 @@ export default function HomePage() {
 
         {/* TÍTULO */}
         <div className="text-center mb-12">
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="Logo"
+              className="mx-auto mb-5 max-h-24 w-auto"
+            />
+          )}
+
           <img
             src="/tittle.png"
             className="mx-auto max-w-[250px] mb-4"
