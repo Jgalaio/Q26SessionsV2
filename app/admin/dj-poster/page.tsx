@@ -61,7 +61,7 @@ export default function DjPosterPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-black to-cyan-600/30 blur-3xl" />
 
           {/* LOGO */}
-          <img src={logoUrl || '/logo.png'} className="w-40 z-10" />
+          <img src={logoUrl || '/tittle.png'} className="w-40 z-10" />
 
           {/* HEADER */}
           <div className="z-10">

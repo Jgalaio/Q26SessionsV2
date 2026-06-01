@@ -268,13 +268,11 @@ export default function VotePage() {
       )}
 
       <div className="relative z-10 max-w-md w-full">
-        {logoUrl && (
-          <img
-            src={logoUrl}
-            alt="Logo"
-            className="mx-auto mb-5 max-h-20 w-auto"
-          />
-        )}
+        <img
+          src={logoUrl || '/tittle.png'}
+          alt="Logo"
+          className="mx-auto mb-5 max-h-20 w-auto"
+        />
 
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-zinc-200">
           <div className="relative group">

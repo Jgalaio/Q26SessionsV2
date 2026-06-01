@@ -48,17 +48,10 @@ export default function HomePage() {
 
         {/* TÍTULO */}
         <div className="text-center mb-12">
-          {logoUrl && (
-            <img
-              src={logoUrl}
-              alt="Logo"
-              className="mx-auto mb-5 max-h-24 w-auto"
-            />
-          )}
-
           <img
-            src="/tittle.png"
-            className="mx-auto max-w-[250px] mb-4"
+            src={logoUrl || '/tittle.png'}
+            alt="Logo"
+            className="mx-auto mb-4 max-h-28 w-auto max-w-[250px]"
           />
 
           <p className={homeBackgroundUrl ? 'text-white/90' : 'text-zinc-600'}>
