@@ -445,6 +445,7 @@ export default function AdminClient() {
               <a
                 href="/live"
                 target="_blank"
+                rel="noreferrer"
                 className={`${adminPrimaryBtnClass} text-center`}
               >
                 🎥 LIVE
@@ -460,6 +461,7 @@ export default function AdminClient() {
               <a
                 href="/admin/dj-qrcodes"
                 target="_blank"
+                rel="noreferrer"
                 className={`${adminSecondaryBtnClass} text-center`}
               >
                 📱 QR DJs
@@ -468,6 +470,7 @@ export default function AdminClient() {
               <a
                 href="/admin/dj-poster"
                 target="_blank"
+                rel="noreferrer"
                 className={`${adminSecondaryBtnClass} text-center`}
               >
                 🎨 Poster DJs
@@ -476,6 +479,7 @@ export default function AdminClient() {
               <a
                 href="/admin/print"
                 target="_blank"
+                rel="noreferrer"
                 className={`${adminSecondaryBtnClass} text-center sm:col-span-2`}
               >
                 🖨️ Impressão de códigos
@@ -941,9 +945,33 @@ export default function AdminClient() {
 }
 
 function tabBtn(active: boolean) {
-  return `px-4 py-2 rounded-xl font-bold ${
-    active ? 'bg-black text-white' : 'bg-zinc-200'
+  return `rounded-2xl px-5 py-3 font-bold transition ${
+    active
+      ? 'bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 text-white shadow-[0_0_22px_rgba(255,88,208,0.22)]'
+      : 'bg-white/6 text-white/72 hover:bg-white/10 hover:text-white'
   }`
+}
+
+type AdminStatCardProps = {
+  label: string
+  value: string
+  detail: string
+}
+
+function AdminStatCard({
+  label,
+  value,
+  detail,
+}: AdminStatCardProps) {
+  return (
+    <div className="theme-neon-stat rounded-[24px] px-5 py-4">
+      <p className="text-xs uppercase tracking-[0.28em] text-white/55">
+        {label}
+      </p>
+      <p className="theme-neon-heading mt-2 text-2xl font-black">{value}</p>
+      <p className="mt-2 text-sm text-white/62">{detail}</p>
+    </div>
+  )
 }
 
 type AssetCardProps = {
@@ -970,19 +998,21 @@ function AssetCard({
   onClear,
 }: AssetCardProps) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-      <p className="font-bold mb-3">{title}</p>
+    <div className="theme-neon-panel rounded-[28px] p-4">
+      <p className="mb-3 text-lg font-black text-white">{title}</p>
 
       {currentImage ? (
         <img
           src={currentImage}
           alt={title}
-          className={`h-40 w-full rounded-xl mb-3 ${
-            previewMode === 'contain' ? 'object-contain bg-white p-3' : 'object-cover'
+          className={`mb-3 h-40 w-full rounded-2xl border border-white/10 ${
+            previewMode === 'contain'
+              ? 'object-contain bg-[#0b112d] p-3'
+              : 'object-cover'
           }`}
         />
       ) : (
-        <div className="mb-3 flex h-40 items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white text-sm text-zinc-500">
+        <div className="mb-3 flex h-40 items-center justify-center rounded-2xl border border-dashed border-white/16 bg-[#0b112d]/72 text-sm text-white/45">
           Nenhum asset definido
         </div>
       )}
@@ -991,11 +1021,11 @@ function AssetCard({
         type="file"
         accept="image/png,image/jpeg,image/webp"
         onChange={(event) => onFileChange(event.target.files?.[0] || null)}
-        className="mb-3 block w-full"
+        className={`${adminFileInputClass} mb-3`}
       />
 
       {selectedFile && (
-        <p className="mb-3 text-sm text-zinc-600">
+        <p className="mb-3 text-sm text-white/65">
           Novo ficheiro: {selectedFile.name}
         </p>
       )}
@@ -1006,7 +1036,7 @@ function AssetCard({
         <button
           onClick={onSave}
           disabled={saving || !selectedFile}
-          className="flex-1 rounded-xl bg-black px-4 py-3 font-bold text-white disabled:opacity-50"
+          className={`${adminPrimaryBtnClass} flex-1 px-4 py-3 text-sm`}
         >
           {saving ? 'A guardar...' : 'Guardar imagem'}
         </button>
@@ -1014,7 +1044,7 @@ function AssetCard({
         <button
           onClick={onClear}
           disabled={saving || !currentImage}
-          className="rounded-xl border border-zinc-300 bg-white px-4 py-3 font-bold disabled:opacity-50"
+          className={`${adminSecondaryBtnClass} px-4 py-3 text-sm`}
         >
           Remover
         </button>
@@ -1035,10 +1065,10 @@ function LogoScaleControl({
   onChange,
 }: LogoScaleControlProps) {
   return (
-    <div>
+    <div className="theme-neon-panel rounded-[22px] p-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium text-zinc-700">{label}</span>
-        <span className="text-sm text-zinc-500">{value}%</span>
+        <span className="text-sm font-medium text-white/84">{label}</span>
+        <span className="text-sm text-white/58">{value}%</span>
       </div>
 
       <input
@@ -1048,7 +1078,7 @@ function LogoScaleControl({
         step="5"
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="mb-2 w-full"
+        className="mb-3 w-full accent-cyan-300"
       />
 
       <input
@@ -1058,7 +1088,7 @@ function LogoScaleControl({
         step="5"
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="w-24 rounded-xl border border-zinc-300 px-3 py-2"
+        className="w-24 rounded-xl border border-white/12 bg-[#0c1230]/82 px-3 py-2 text-white outline-none"
       />
     </div>
   )
