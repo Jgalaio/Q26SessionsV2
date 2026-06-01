@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json()
-  const updates: Record<string, boolean | string | null> = {}
+  const updates: Record<string, boolean | string | number | null> = {}
 
   if ('voting_open' in body) {
     if (typeof body.voting_open !== 'boolean') {
@@ -70,6 +70,29 @@ export async function POST(req: Request) {
     }
 
     updates.logo_url = body.logo_url?.trim() || null
+  }
+
+  if ('logo_scale_percent' in body) {
+    if (
+      typeof body.logo_scale_percent !== 'number' ||
+      !Number.isFinite(body.logo_scale_percent)
+    ) {
+      return NextResponse.json(
+        { error: 'Tamanho do logo invalido' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedScale = Math.round(body.logo_scale_percent)
+
+    if (normalizedScale < 40 || normalizedScale > 260) {
+      return NextResponse.json(
+        { error: 'Tamanho do logo fora do limite permitido' },
+        { status: 400 }
+      )
+    }
+
+    updates.logo_scale_percent = normalizedScale
   }
 
   if (Object.keys(updates).length === 0) {

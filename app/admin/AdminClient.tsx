@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { tryGetSupabaseClient } from '@/lib/supabase'
+import type { ReactNode } from 'react'
 
 type Tab = 'djs' | 'ranking' | 'control'
 type BrandAssetTarget = 'home' | 'vote' | 'logo'
@@ -15,6 +16,7 @@ export default function AdminClient() {
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoScalePercent, setLogoScalePercent] = useState(100)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
@@ -28,6 +30,7 @@ export default function AdminClient() {
   const [resetLoading, setResetLoading] = useState(false)
   const [realtimeEnabled, setRealtimeEnabled] = useState(false)
   const [savingAsset, setSavingAsset] = useState<BrandAssetTarget | null>(null)
+  const [savingLogoScale, setSavingLogoScale] = useState(false)
 
   // ================= INIT =================
   useEffect(() => {
@@ -59,7 +62,9 @@ export default function AdminClient() {
     return uploadData.url as string
   }
 
-  const saveSettings = async (updates: Record<string, boolean | string | null>) => {
+  const saveSettings = async (
+    updates: Record<string, boolean | string | number | null>
+  ) => {
     const res = await fetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -183,6 +188,7 @@ export default function AdminClient() {
     setHomeBackgroundUrl(data?.home_background_url || null)
     setVoteBackgroundUrl(data?.vote_background_url || null)
     setLogoUrl(data?.logo_url || null)
+    setLogoScalePercent(data?.logo_scale_percent ?? 100)
   }
 
   const toggleVoting = async () => {
@@ -262,6 +268,30 @@ export default function AdminClient() {
       )
     } finally {
       setSavingAsset(null)
+    }
+  }
+
+  const saveLogoScale = async () => {
+    const normalizedScale = Math.round(logoScalePercent)
+
+    if (normalizedScale < 40 || normalizedScale > 260) {
+      alert('Escolhe um tamanho entre 40% e 260%')
+      return
+    }
+
+    setSavingLogoScale(true)
+
+    try {
+      await saveSettings({ logo_scale_percent: normalizedScale })
+      setLogoScalePercent(normalizedScale)
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao guardar tamanho do logo'
+      )
+    } finally {
+      setSavingLogoScale(false)
     }
   }
 
@@ -519,7 +549,53 @@ export default function AdminClient() {
                 onFileChange={setLogoFile}
                 onSave={() => void saveAssetImage('logo')}
                 onClear={() => void clearAssetImage('logo')}
-              />
+              >
+                <div className="mb-4 rounded-xl border border-zinc-200 bg-white p-3">
+                  <p className="mb-2 text-sm font-semibold text-zinc-700">
+                    Tamanho do logo
+                  </p>
+
+                  <input
+                    type="range"
+                    min="40"
+                    max="260"
+                    step="5"
+                    value={logoScalePercent}
+                    onChange={(event) =>
+                      setLogoScalePercent(Number(event.target.value))
+                    }
+                    className="mb-3 w-full"
+                  />
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="40"
+                      max="260"
+                      step="5"
+                      value={logoScalePercent}
+                      onChange={(event) =>
+                        setLogoScalePercent(Number(event.target.value))
+                      }
+                      className="w-24 rounded-xl border border-zinc-300 px-3 py-2"
+                    />
+
+                    <span className="text-sm text-zinc-600">%</span>
+
+                    <button
+                      onClick={() => void saveLogoScale()}
+                      disabled={savingLogoScale}
+                      className="ml-auto rounded-xl border border-zinc-300 bg-white px-4 py-2 font-bold disabled:opacity-50"
+                    >
+                      {savingLogoScale ? 'A guardar...' : 'Guardar tamanho'}
+                    </button>
+                  </div>
+
+                  <p className="mt-2 text-xs text-zinc-500">
+                    O sistema mantém sempre a proporção do logo.
+                  </p>
+                </div>
+              </AssetCard>
             </div>
           </div>
 
@@ -582,6 +658,7 @@ type AssetCardProps = {
   currentImage: string | null
   selectedFile: File | null
   saving: boolean
+  children?: ReactNode
   onFileChange: (file: File | null) => void
   onSave: () => void
   onClear: () => void
@@ -592,6 +669,7 @@ function AssetCard({
   currentImage,
   selectedFile,
   saving,
+  children,
   onFileChange,
   onSave,
   onClear,
@@ -625,13 +703,15 @@ function AssetCard({
         </p>
       )}
 
+      {children}
+
       <div className="flex gap-2">
         <button
           onClick={onSave}
           disabled={saving || !selectedFile}
           className="flex-1 rounded-xl bg-black px-4 py-3 font-bold text-white disabled:opacity-50"
         >
-          {saving ? 'A guardar...' : 'Guardar fundo'}
+          {saving ? 'A guardar...' : 'Guardar imagem'}
         </button>
 
         <button

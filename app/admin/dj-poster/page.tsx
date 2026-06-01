@@ -6,6 +6,7 @@ import QRCode from 'qrcode'
 export default function DjPosterPage() {
   const [items, setItems] = useState<any[]>([])
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoScalePercent, setLogoScalePercent] = useState(100)
 
   useEffect(() => {
     void fetchDjs()
@@ -37,6 +38,7 @@ export default function DjPosterPage() {
     const res = await fetch('/api/settings')
     const data = await res.json()
     setLogoUrl(data?.logo_url || null)
+    setLogoScalePercent(data?.logo_scale_percent ?? 100)
   }
 
   return (
@@ -61,7 +63,14 @@ export default function DjPosterPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-black to-cyan-600/30 blur-3xl" />
 
           {/* LOGO */}
-          <img src={logoUrl || '/tittle.png'} className="w-40 z-10" />
+          <img
+            src={logoUrl || '/tittle.png'}
+            className="z-10 h-auto w-auto"
+            style={{
+              maxHeight: `${160 * (logoScalePercent / 100)}px`,
+              maxWidth: `${220 * (logoScalePercent / 100)}px`,
+            }}
+          />
 
           {/* HEADER */}
           <div className="z-10">
