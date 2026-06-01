@@ -46,12 +46,12 @@ export default function DjPosterPage() {
   }
 
   return (
-    <main className="bg-black text-white">
+    <main className="theme-neon-page bg-black text-white">
 
       <div className="p-6 print:hidden">
         <button
           onClick={() => window.print()}
-          className="px-6 py-3 bg-white text-black font-bold rounded-xl"
+          className="theme-neon-panel px-6 py-3 font-bold rounded-2xl"
         >
           🖨️ Imprimir Posters A3
         </button>
@@ -71,13 +71,13 @@ export default function DjPosterPage() {
           )}
 
           {/* FUNDO */}
-          <div className="absolute inset-0 bg-black/45" />
-          <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-black to-cyan-600/30" />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="theme-neon-overlay absolute inset-0" />
 
           {/* LOGO */}
           <img
             src={logoUrl || '/tittle.png'}
-            className="z-10 h-auto w-auto"
+            className="theme-neon-logo z-10 h-auto w-auto"
             style={{
               maxHeight: `${160 * (posterLogoScalePercent / 100)}px`,
               maxWidth: `${220 * (posterLogoScalePercent / 100)}px`,
@@ -85,12 +85,12 @@ export default function DjPosterPage() {
           />
 
           {/* HEADER */}
-          <div className="z-10">
-            <h1 className="text-7xl font-black bg-gradient-to-r from-fuchsia-500 to-cyan-500 bg-clip-text text-transparent">
+          <div className="theme-neon-shell z-10 rounded-[36px] px-10 py-8">
+            <h1 className="theme-neon-heading text-7xl font-black uppercase tracking-[0.18em]">
               VOTA NO TEU DJ
             </h1>
 
-            <p className="text-2xl opacity-70 mt-3">
+            <p className="theme-neon-muted text-2xl mt-3">
               Quarentões 26 Sessions
             </p>
           </div>
@@ -99,26 +99,28 @@ export default function DjPosterPage() {
           <div className="z-10">
             <img
               src={dj.image_url}
-              className="w-[500px] h-[500px] object-cover rounded-[40px] border-8 border-white shadow-2xl"
+              className="w-[500px] h-[500px] object-cover rounded-[40px] border border-white/30 shadow-[0_0_55px_rgba(138,92,255,0.28)]"
             />
 
-            <h2 className="text-6xl font-black mt-6">
-              {dj.name}
-            </h2>
+            <div className="theme-neon-shell mt-6 rounded-[28px] px-8 py-5">
+              <h2 className="theme-neon-heading text-6xl font-black">
+                {dj.name}
+              </h2>
+            </div>
           </div>
 
           {/* QR */}
-          <div className="bg-white p-8 rounded-3xl z-10 shadow-2xl">
+          <div className="theme-neon-panel p-8 rounded-[30px] z-10 shadow-2xl">
             <img src={dj.qr} className="w-72" />
           </div>
 
           {/* CTA */}
-          <div className="z-10">
-            <p className="text-3xl font-bold">
+          <div className="theme-neon-shell z-10 rounded-[28px] px-8 py-6">
+            <p className="theme-neon-heading text-3xl font-bold">
               📱 Faz scan e vota
             </p>
 
-            <p className="opacity-60 mt-2">
+            <p className="theme-neon-muted mt-2 text-lg">
               Escolhe o teu DJ favorito
             </p>
           </div>

@@ -237,20 +237,22 @@ export default function VotePage() {
 
   if (pageLoading) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center p-6">
-        <p className="text-zinc-500">A carregar DJ...</p>
+      <main className="theme-neon-page min-h-screen flex items-center justify-center p-6">
+        <div className="theme-neon-shell rounded-[28px] px-6 py-5">
+          <p className="theme-neon-heading">A carregar DJ...</p>
+        </div>
       </main>
     )
   }
 
   if (!djData) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center p-6">
-        <div className="max-w-md rounded-3xl border border-zinc-200 bg-white p-6 text-center shadow-xl">
-          <p className="mb-2 text-lg font-bold">
+      <main className="theme-neon-page min-h-screen flex items-center justify-center p-6">
+        <div className="theme-neon-shell max-w-md rounded-[30px] p-6 text-center shadow-xl">
+          <p className="mb-2 text-lg font-black theme-neon-heading">
             Não conseguimos abrir esta página.
           </p>
-          <p className="text-zinc-500">
+          <p className="theme-neon-muted">
             {errorMessage || 'DJ não encontrado.'}
           </p>
         </div>
@@ -260,29 +262,32 @@ export default function VotePage() {
 
   return (
     <main
-      className="relative min-h-screen bg-white flex items-center justify-center p-6 bg-cover bg-center"
+      className="theme-neon-page relative min-h-screen flex items-center justify-center p-6 bg-cover bg-center"
       style={
         voteBackgroundUrl
           ? { backgroundImage: `url(${voteBackgroundUrl})` }
           : undefined
       }
     >
-      {voteBackgroundUrl && (
-        <div className="absolute inset-0 bg-black/55" />
-      )}
+      <div className="theme-neon-overlay absolute inset-0" />
 
       <div className="relative z-10 max-w-md w-full">
-        <img
-          src={logoUrl || '/tittle.png'}
-          alt="Logo"
-          className="mx-auto mb-5 h-auto w-auto"
-          style={{
-            maxHeight: `${80 * (voteLogoScalePercent / 100)}px`,
-            maxWidth: `${220 * (voteLogoScalePercent / 100)}px`,
-          }}
-        />
+        <div className="theme-neon-shell rounded-[32px] p-4 md:p-5">
+          <img
+            src={logoUrl || '/tittle.png'}
+            alt="Logo"
+            className="theme-neon-logo mx-auto mb-5 h-auto w-auto"
+            style={{
+              maxHeight: `${80 * (voteLogoScalePercent / 100)}px`,
+              maxWidth: `${220 * (voteLogoScalePercent / 100)}px`,
+            }}
+          />
 
-        <div className="rounded-3xl overflow-hidden shadow-2xl border border-zinc-200">
+          <div className="theme-neon-chip mb-4 inline-flex rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em]">
+            Votação segura
+          </div>
+
+          <div className="rounded-[28px] overflow-hidden shadow-2xl border border-white/10 bg-[#090915]/80 backdrop-blur-md">
           <div className="relative group">
             <img
               src={djData.image_url}
@@ -290,29 +295,29 @@ export default function VotePage() {
               alt={djData.name}
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-gradient-to-r from-fuchsia-500/30 to-cyan-500/30 blur-xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050513]/95 via-[#0f1233]/44 to-transparent" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-gradient-to-r from-fuchsia-500/24 to-cyan-500/20 blur-xl" />
 
-            <h1 className="absolute bottom-4 left-4 text-white text-2xl font-black tracking-wide">
+            <h1 className="absolute bottom-4 left-4 theme-neon-heading text-2xl font-black tracking-wide">
               {djData.name}
             </h1>
           </div>
 
           <div className="p-5 space-y-4">
             {success && (
-              <div className="bg-green-500 text-white p-3 rounded-xl text-center font-bold animate-pulse">
+              <div className="rounded-2xl border border-emerald-300/30 bg-emerald-400/20 p-3 text-center font-bold text-emerald-50 animate-pulse">
                 ✅ VOTO REGISTADO
               </div>
             )}
 
             {loading && (
-              <div className="text-center text-gray-500 animate-pulse">
+              <div className="text-center text-white/70 animate-pulse">
                 A registar voto...
               </div>
             )}
 
             {errorMessage && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-2xl border border-red-400/30 bg-red-400/16 px-4 py-3 text-sm text-red-100">
                 {errorMessage}
               </div>
             )}
@@ -321,14 +326,14 @@ export default function VotePage() {
               <button
                 onClick={startScanner}
                 disabled={loading}
-                className="w-full py-4 rounded-xl text-white font-bold text-lg bg-gradient-to-r from-fuchsia-500 to-cyan-500 shadow-lg shadow-fuchsia-500/30 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
+                className="w-full py-4 rounded-2xl text-white font-bold text-lg bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 shadow-[0_0_32px_rgba(255,88,208,0.35)] hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
               >
                 {loading ? 'A validar...' : '📷 SCAN & VOTAR'}
               </button>
             ) : (
               <button
                 onClick={() => void stopScanner()}
-                className="w-full py-4 rounded-xl text-white font-bold bg-red-500"
+                className="w-full py-4 rounded-2xl text-white font-bold bg-red-500 shadow-[0_0_28px_rgba(248,113,113,0.25)]"
               >
                 ❌ PARAR
               </button>
@@ -349,8 +354,8 @@ export default function VotePage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-              <p className="text-sm font-semibold text-zinc-700 mb-3">
+            <div className="theme-neon-panel rounded-2xl p-4">
+              <p className="text-sm font-semibold text-white/82 mb-3">
                 Se o QR não ler, introduz o código manualmente.
               </p>
 
@@ -361,19 +366,20 @@ export default function VotePage() {
                     setManualCode(event.target.value.toUpperCase())
                   }
                   placeholder="PS-ABCD-000001"
-                  className="flex-1 rounded-xl border border-zinc-300 bg-white px-4 py-3 outline-none"
+                  className="flex-1 rounded-xl border border-white/12 bg-[#0e1230]/85 px-4 py-3 text-white placeholder:text-white/35 outline-none"
                 />
 
                 <button
                   onClick={() => void autoVote(manualCode)}
                   disabled={loading || !manualCode.trim()}
-                  className="rounded-xl bg-black px-4 py-3 font-bold text-white disabled:opacity-40"
+                  className="rounded-xl bg-white/10 px-4 py-3 font-bold text-white disabled:opacity-40"
                 >
                   OK
                 </button>
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
 

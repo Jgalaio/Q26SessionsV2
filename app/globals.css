@@ -3,6 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --neon-night: #09061b;
+  --neon-violet: #8a5cff;
+  --neon-pink: #ff58d0;
+  --neon-cyan: #6ee7ff;
+  --neon-text-soft: rgba(239, 236, 255, 0.86);
+  --neon-border: rgba(255, 255, 255, 0.14);
 }
 
 @theme inline {
@@ -18,6 +24,66 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.theme-neon-page {
+  background-color: var(--neon-night);
+  color: white;
+}
+
+.theme-neon-overlay {
+  background:
+    radial-gradient(circle at top, rgba(255, 88, 208, 0.2), transparent 26%),
+    radial-gradient(circle at 85% 16%, rgba(110, 231, 255, 0.16), transparent 18%),
+    linear-gradient(180deg, rgba(8, 7, 23, 0.28) 0%, rgba(8, 7, 23, 0.72) 44%, rgba(6, 6, 18, 0.92) 100%);
+}
+
+.theme-neon-shell {
+  background: linear-gradient(160deg, rgba(17, 18, 46, 0.72), rgba(10, 10, 28, 0.9));
+  border: 1px solid var(--neon-border);
+  box-shadow:
+    0 24px 70px rgba(4, 3, 14, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+}
+
+.theme-neon-panel {
+  background: linear-gradient(160deg, rgba(21, 22, 59, 0.7), rgba(9, 10, 28, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.34),
+    0 0 38px rgba(138, 92, 255, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.theme-neon-stat {
+  background: linear-gradient(135deg, rgba(255, 88, 208, 0.18), rgba(110, 231, 255, 0.14));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 34px rgba(7, 7, 24, 0.26);
+  backdrop-filter: blur(18px);
+}
+
+.theme-neon-chip {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--neon-text-soft);
+}
+
+.theme-neon-heading {
+  color: white;
+  text-shadow:
+    0 0 22px rgba(255, 88, 208, 0.3),
+    0 0 34px rgba(110, 231, 255, 0.16);
+}
+
+.theme-neon-muted {
+  color: var(--neon-text-soft);
+}
+
+.theme-neon-logo {
+  filter:
+    drop-shadow(0 0 18px rgba(255, 88, 208, 0.28))
+    drop-shadow(0 0 28px rgba(110, 231, 255, 0.14));
 }
 
 @media print {
