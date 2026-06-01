@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { tryGetSupabaseClient } from '@/lib/supabase'
 
 type Tab = 'djs' | 'ranking' | 'control'
 
@@ -19,6 +19,7 @@ export default function AdminClient() {
   const [totalCodes, setTotalCodes] = useState(1000)
   const [loadingCodes, setLoadingCodes] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false)
 
   // ================= INIT =================
   useEffect(() => {
@@ -97,7 +98,15 @@ export default function AdminClient() {
   }
 
   useEffect(() => {
-    const channel = supabase
+    const client = tryGetSupabaseClient()
+
+    if (!client) {
+      return
+    }
+
+    setRealtimeEnabled(true)
+
+    const channel = client
       .channel('votes-pro')
       .on(
         'postgres_changes',
@@ -107,9 +116,21 @@ export default function AdminClient() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      client.removeChannel(channel)
     }
   }, [])
+
+  useEffect(() => {
+    if (realtimeEnabled) {
+      return
+    }
+
+    const interval = setInterval(() => {
+      fetchRanking()
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [realtimeEnabled])
 
   // ================= SETTINGS =================
   const fetchSettings = async () => {
@@ -195,7 +216,14 @@ export default function AdminClient() {
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-black">Admin Panel</h1>
+        <div>
+          <h1 className="text-3xl font-black">Admin Panel</h1>
+          {!realtimeEnabled && (
+            <p className="text-sm text-amber-600 mt-1">
+              Atualizacao automatica em modo fallback.
+            </p>
+          )}
+        </div>
 
         <div className="flex gap-2">
 
