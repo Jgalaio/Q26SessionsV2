@@ -26,7 +26,7 @@ export default function VotePage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [logoScalePercent, setLogoScalePercent] = useState(100)
+  const [voteLogoScalePercent, setVoteLogoScalePercent] = useState(100)
 
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const lastScanRef = useRef<string | null>(null)
@@ -127,7 +127,9 @@ export default function VotePage() {
         if (isMounted) {
           setVoteBackgroundUrl(data?.vote_background_url || null)
           setLogoUrl(data?.logo_url || null)
-          setLogoScalePercent(data?.logo_scale_percent ?? 100)
+          setVoteLogoScalePercent(
+            data?.vote_logo_scale_percent ?? data?.logo_scale_percent ?? 100
+          )
         }
       } catch {}
     }
@@ -275,8 +277,8 @@ export default function VotePage() {
           alt="Logo"
           className="mx-auto mb-5 h-auto w-auto"
           style={{
-            maxHeight: `${80 * (logoScalePercent / 100)}px`,
-            maxWidth: `${220 * (logoScalePercent / 100)}px`,
+            maxHeight: `${80 * (voteLogoScalePercent / 100)}px`,
+            maxWidth: `${220 * (voteLogoScalePercent / 100)}px`,
           }}
         />
 

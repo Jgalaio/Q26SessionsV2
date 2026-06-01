@@ -95,6 +95,35 @@ export async function POST(req: Request) {
     updates.logo_scale_percent = normalizedScale
   }
 
+  for (const field of [
+    'home_logo_scale_percent',
+    'vote_logo_scale_percent',
+    'poster_logo_scale_percent',
+  ] as const) {
+    if (field in body) {
+      if (
+        typeof body[field] !== 'number' ||
+        !Number.isFinite(body[field])
+      ) {
+        return NextResponse.json(
+          { error: 'Tamanho do logo invalido' },
+          { status: 400 }
+        )
+      }
+
+      const normalizedScale = Math.round(body[field])
+
+      if (normalizedScale < 40 || normalizedScale > 260) {
+        return NextResponse.json(
+          { error: 'Tamanho do logo fora do limite permitido' },
+          { status: 400 }
+        )
+      }
+
+      updates[field] = normalizedScale
+    }
+  }
+
   if (Object.keys(updates).length === 0) {
     return NextResponse.json(
       { error: 'Nenhuma alteracao recebida' },

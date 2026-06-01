@@ -16,7 +16,9 @@ export default function AdminClient() {
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [logoScalePercent, setLogoScalePercent] = useState(100)
+  const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
+  const [voteLogoScalePercent, setVoteLogoScalePercent] = useState(100)
+  const [posterLogoScalePercent, setPosterLogoScalePercent] = useState(100)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
@@ -188,7 +190,10 @@ export default function AdminClient() {
     setHomeBackgroundUrl(data?.home_background_url || null)
     setVoteBackgroundUrl(data?.vote_background_url || null)
     setLogoUrl(data?.logo_url || null)
-    setLogoScalePercent(data?.logo_scale_percent ?? 100)
+    const defaultScale = data?.logo_scale_percent ?? 100
+    setHomeLogoScalePercent(data?.home_logo_scale_percent ?? defaultScale)
+    setVoteLogoScalePercent(data?.vote_logo_scale_percent ?? defaultScale)
+    setPosterLogoScalePercent(data?.poster_logo_scale_percent ?? defaultScale)
   }
 
   const toggleVoting = async () => {
@@ -272,18 +277,25 @@ export default function AdminClient() {
   }
 
   const saveLogoScale = async () => {
-    const normalizedScale = Math.round(logoScalePercent)
+    const scales = {
+      home_logo_scale_percent: Math.round(homeLogoScalePercent),
+      vote_logo_scale_percent: Math.round(voteLogoScalePercent),
+      poster_logo_scale_percent: Math.round(posterLogoScalePercent),
+    }
 
-    if (normalizedScale < 40 || normalizedScale > 260) {
-      alert('Escolhe um tamanho entre 40% e 260%')
+    const hasInvalidScale = Object.values(scales).some(
+      (value) => value < 40 || value > 260
+    )
+
+    if (hasInvalidScale) {
+      alert('Escolhe tamanhos entre 40% e 260%')
       return
     }
 
     setSavingLogoScale(true)
 
     try {
-      await saveSettings({ logo_scale_percent: normalizedScale })
-      setLogoScalePercent(normalizedScale)
+      await saveSettings(scales)
     } catch (error) {
       alert(
         error instanceof Error
@@ -546,48 +558,43 @@ export default function AdminClient() {
                 currentImage={logoUrl}
                 selectedFile={logoFile}
                 saving={savingAsset === 'logo'}
+                previewMode="contain"
                 onFileChange={setLogoFile}
                 onSave={() => void saveAssetImage('logo')}
                 onClear={() => void clearAssetImage('logo')}
               >
                 <div className="mb-4 rounded-xl border border-zinc-200 bg-white p-3">
                   <p className="mb-2 text-sm font-semibold text-zinc-700">
-                    Tamanho do logo
+                    Tamanho do logo por página
                   </p>
 
-                  <input
-                    type="range"
-                    min="40"
-                    max="260"
-                    step="5"
-                    value={logoScalePercent}
-                    onChange={(event) =>
-                      setLogoScalePercent(Number(event.target.value))
-                    }
-                    className="mb-3 w-full"
-                  />
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="40"
-                      max="260"
-                      step="5"
-                      value={logoScalePercent}
-                      onChange={(event) =>
-                        setLogoScalePercent(Number(event.target.value))
-                      }
-                      className="w-24 rounded-xl border border-zinc-300 px-3 py-2"
+                  <div className="space-y-4">
+                    <LogoScaleControl
+                      label="Home"
+                      value={homeLogoScalePercent}
+                      onChange={setHomeLogoScalePercent}
                     />
 
-                    <span className="text-sm text-zinc-600">%</span>
+                    <LogoScaleControl
+                      label="Voto"
+                      value={voteLogoScalePercent}
+                      onChange={setVoteLogoScalePercent}
+                    />
 
+                    <LogoScaleControl
+                      label="Poster"
+                      value={posterLogoScalePercent}
+                      onChange={setPosterLogoScalePercent}
+                    />
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
                     <button
                       onClick={() => void saveLogoScale()}
                       disabled={savingLogoScale}
-                      className="ml-auto rounded-xl border border-zinc-300 bg-white px-4 py-2 font-bold disabled:opacity-50"
+                      className="rounded-xl border border-zinc-300 bg-white px-4 py-2 font-bold disabled:opacity-50"
                     >
-                      {savingLogoScale ? 'A guardar...' : 'Guardar tamanho'}
+                      {savingLogoScale ? 'A guardar...' : 'Guardar tamanhos'}
                     </button>
                   </div>
 
@@ -659,6 +666,7 @@ type AssetCardProps = {
   selectedFile: File | null
   saving: boolean
   children?: ReactNode
+  previewMode?: 'cover' | 'contain'
   onFileChange: (file: File | null) => void
   onSave: () => void
   onClear: () => void
@@ -670,6 +678,7 @@ function AssetCard({
   selectedFile,
   saving,
   children,
+  previewMode = 'cover',
   onFileChange,
   onSave,
   onClear,
@@ -682,7 +691,9 @@ function AssetCard({
         <img
           src={currentImage}
           alt={title}
-          className="h-40 w-full rounded-xl object-cover mb-3"
+          className={`h-40 w-full rounded-xl mb-3 ${
+            previewMode === 'contain' ? 'object-contain bg-white p-3' : 'object-cover'
+          }`}
         />
       ) : (
         <div className="mb-3 flex h-40 items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-white text-sm text-zinc-500">
@@ -722,6 +733,47 @@ function AssetCard({
           Remover
         </button>
       </div>
+    </div>
+  )
+}
+
+type LogoScaleControlProps = {
+  label: string
+  value: number
+  onChange: (value: number) => void
+}
+
+function LogoScaleControl({
+  label,
+  value,
+  onChange,
+}: LogoScaleControlProps) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-medium text-zinc-700">{label}</span>
+        <span className="text-sm text-zinc-500">{value}%</span>
+      </div>
+
+      <input
+        type="range"
+        min="40"
+        max="260"
+        step="5"
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="mb-2 w-full"
+      />
+
+      <input
+        type="number"
+        min="40"
+        max="260"
+        step="5"
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="w-24 rounded-xl border border-zinc-300 px-3 py-2"
+      />
     </div>
   )
 }

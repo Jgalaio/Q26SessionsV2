@@ -8,7 +8,7 @@ export default function HomePage() {
   const [totalVotes, setTotalVotes] = useState(0)
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [logoScalePercent, setLogoScalePercent] = useState(100)
+  const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
 
   useEffect(() => {
     fetchRanking()
@@ -30,7 +30,9 @@ export default function HomePage() {
     const data = await res.json()
     setHomeBackgroundUrl(data?.home_background_url || null)
     setLogoUrl(data?.logo_url || null)
-    setLogoScalePercent(data?.logo_scale_percent ?? 100)
+    setHomeLogoScalePercent(
+      data?.home_logo_scale_percent ?? data?.logo_scale_percent ?? 100
+    )
   }
 
   return (
@@ -55,8 +57,8 @@ export default function HomePage() {
             alt="Logo"
             className="mx-auto mb-4 h-auto w-auto"
             style={{
-              maxHeight: `${112 * (logoScalePercent / 100)}px`,
-              maxWidth: `${250 * (logoScalePercent / 100)}px`,
+              maxHeight: `${112 * (homeLogoScalePercent / 100)}px`,
+              maxWidth: `${250 * (homeLogoScalePercent / 100)}px`,
             }}
           />
 
