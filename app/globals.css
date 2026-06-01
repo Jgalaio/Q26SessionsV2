@@ -88,33 +88,34 @@ body {
 
 @media print {
   @page {
-    size: A4;
-    margin: 10mm;
+    size: A3 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: black;
+    margin: 0;
+    padding: 0;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .print\:break-after-page {
     break-after: page;
   }
-}
 
-@media print {
-  @page {
-    size: A3;
-    margin: 0;
+  .poster-a3-page {
+    width: 297mm !important;
+    height: 420mm !important;
+    margin: 0 auto !important;
+    break-inside: avoid;
   }
 
-  body {
-    background: black;
-  }
-}
-
-@media print {
-  @page {
-    size: auto;
-    margin: 0;
-  }
-
-  body {
-    margin: 0;
+  .poster-a3-page:last-child {
+    break-after: auto !important;
   }
 }
