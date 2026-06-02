@@ -4,6 +4,7 @@ import { requireAdminApiAccess } from '@/lib/admin-api-auth'
 
 const MAX_EVENT_TITLE_LENGTH = 80
 const MAX_HOME_SUBTITLE_LENGTH = 120
+const MAX_HOME_FOOTER_DISCLAIMER_LENGTH = 500
 const HOME_SUBTITLE_MODES = ['text', 'image'] as const
 const EVENT_TITLE_VISIBILITY_FIELDS = [
   'show_event_title_home',
@@ -136,6 +137,76 @@ export async function POST(req: Request) {
     }
 
     updates.home_subtitle_image_scale_percent = normalizedScale
+  }
+
+  if ('home_footer_logo_url' in body) {
+    if (
+      body.home_footer_logo_url !== null &&
+      typeof body.home_footer_logo_url !== 'string'
+    ) {
+      return NextResponse.json(
+        { error: 'Logo do rodape da pagina principal invalido' },
+        { status: 400 }
+      )
+    }
+
+    updates.home_footer_logo_url = body.home_footer_logo_url?.trim() || null
+  }
+
+  if ('home_footer_logo_scale_percent' in body) {
+    if (
+      typeof body.home_footer_logo_scale_percent !== 'number' ||
+      !Number.isFinite(body.home_footer_logo_scale_percent)
+    ) {
+      return NextResponse.json(
+        { error: 'Tamanho do logo do rodape invalido' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedScale = Math.round(body.home_footer_logo_scale_percent)
+
+    if (normalizedScale < 40 || normalizedScale > 500) {
+      return NextResponse.json(
+        { error: 'Tamanho do logo do rodape fora do limite permitido' },
+        { status: 400 }
+      )
+    }
+
+    updates.home_footer_logo_scale_percent = normalizedScale
+  }
+
+  if ('home_footer_disclaimer_text' in body) {
+    if (typeof body.home_footer_disclaimer_text !== 'string') {
+      return NextResponse.json(
+        { error: 'Disclaimer da pagina principal invalido' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedDisclaimer = body.home_footer_disclaimer_text.trim()
+
+    if (normalizedDisclaimer.length > MAX_HOME_FOOTER_DISCLAIMER_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `Disclaimer deve ter no maximo ${MAX_HOME_FOOTER_DISCLAIMER_LENGTH} caracteres`,
+        },
+        { status: 400 }
+      )
+    }
+
+    updates.home_footer_disclaimer_text = normalizedDisclaimer
+  }
+
+  if ('show_home_footer_disclaimer' in body) {
+    if (typeof body.show_home_footer_disclaimer !== 'boolean') {
+      return NextResponse.json(
+        { error: 'Visibilidade do disclaimer invalida' },
+        { status: 400 }
+      )
+    }
+
+    updates.show_home_footer_disclaimer = body.show_home_footer_disclaimer
   }
 
   for (const field of EVENT_TITLE_VISIBILITY_FIELDS) {

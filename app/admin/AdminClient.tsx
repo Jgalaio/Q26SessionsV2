@@ -5,7 +5,13 @@ import { tryGetSupabaseClient } from '@/lib/supabase'
 import type { ReactNode } from 'react'
 
 type Tab = 'djs' | 'ranking' | 'control'
-type BrandAssetTarget = 'home' | 'vote' | 'poster' | 'logo' | 'homeSubtitle'
+type BrandAssetTarget =
+  | 'home'
+  | 'vote'
+  | 'poster'
+  | 'logo'
+  | 'homeSubtitle'
+  | 'homeFooterLogo'
 type HomeSubtitleMode = 'text' | 'image'
 type EventTitleVisibilityOption = {
   label: string
@@ -48,6 +54,12 @@ export default function AdminClient() {
   const [homeSubtitleImageUrl, setHomeSubtitleImageUrl] = useState<string | null>(null)
   const [homeSubtitleImageScalePercent, setHomeSubtitleImageScalePercent] =
     useState(100)
+  const [homeFooterLogoUrl, setHomeFooterLogoUrl] = useState<string | null>(null)
+  const [homeFooterLogoScalePercent, setHomeFooterLogoScalePercent] =
+    useState(100)
+  const [homeFooterDisclaimerText, setHomeFooterDisclaimerText] = useState('')
+  const [showHomeFooterDisclaimer, setShowHomeFooterDisclaimer] =
+    useState(false)
   const [showEventTitleHome, setShowEventTitleHome] = useState(true)
   const [showEventTitleLive, setShowEventTitleLive] = useState(true)
   const [showEventTitlePoster, setShowEventTitlePoster] = useState(true)
@@ -65,6 +77,8 @@ export default function AdminClient() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [homeSubtitleImageFile, setHomeSubtitleImageFile] =
     useState<File | null>(null)
+  const [homeFooterLogoFile, setHomeFooterLogoFile] =
+    useState<File | null>(null)
 
   const [totalCodes, setTotalCodes] = useState(1000)
   const [loadingCodes, setLoadingCodes] = useState(false)
@@ -73,6 +87,7 @@ export default function AdminClient() {
   const [savingAsset, setSavingAsset] = useState<BrandAssetTarget | null>(null)
   const [savingLogoScale, setSavingLogoScale] = useState(false)
   const [savingEventTitle, setSavingEventTitle] = useState(false)
+  const [savingHomeFooter, setSavingHomeFooter] = useState(false)
 
   // ================= INIT =================
   useEffect(() => {
@@ -238,6 +253,12 @@ export default function AdminClient() {
     setHomeSubtitleImageScalePercent(
       data?.home_subtitle_image_scale_percent ?? 100
     )
+    setHomeFooterLogoUrl(data?.home_footer_logo_url || null)
+    setHomeFooterLogoScalePercent(
+      data?.home_footer_logo_scale_percent ?? 100
+    )
+    setHomeFooterDisclaimerText(data?.home_footer_disclaimer_text || '')
+    setShowHomeFooterDisclaimer(data?.show_home_footer_disclaimer ?? false)
     setShowEventTitleHome(data?.show_event_title_home ?? true)
     setShowEventTitleLive(data?.show_event_title_live ?? true)
     setShowEventTitlePoster(data?.show_event_title_poster ?? true)
@@ -323,7 +344,9 @@ export default function AdminClient() {
 
   const saveAssetImage = async (target: BrandAssetTarget) => {
     const selectedFile =
-      target === 'homeSubtitle'
+      target === 'homeFooterLogo'
+        ? homeFooterLogoFile
+        : target === 'homeSubtitle'
         ? homeSubtitleImageFile
         : target === 'home'
           ? homeBackgroundFile
@@ -339,6 +362,7 @@ export default function AdminClient() {
     }
 
     const subtitleImageScale = Math.round(homeSubtitleImageScalePercent)
+    const footerLogoScale = Math.round(homeFooterLogoScalePercent)
 
     if (
       target === 'homeSubtitle' &&
@@ -348,16 +372,34 @@ export default function AdminClient() {
       return
     }
 
+    if (
+      target === 'homeFooterLogo' &&
+      (footerLogoScale < 40 || footerLogoScale > 500)
+    ) {
+      alert('A escala do logo do rodapé deve estar entre 40% e 500%.')
+      return
+    }
+
     setSavingAsset(target)
 
     try {
       const folder =
-        target === 'logo' || target === 'homeSubtitle'
+        target === 'logo' ||
+        target === 'homeSubtitle' ||
+        target === 'homeFooterLogo'
           ? 'branding'
           : 'backgrounds'
       const imageUrl = await uploadImage(selectedFile, folder)
 
-      if (target === 'homeSubtitle') {
+      if (target === 'homeFooterLogo') {
+        await saveSettings({
+          home_footer_logo_url: imageUrl,
+          home_footer_logo_scale_percent: footerLogoScale,
+        })
+        setHomeFooterLogoUrl(imageUrl)
+        setHomeFooterLogoScalePercent(footerLogoScale)
+        setHomeFooterLogoFile(null)
+      } else if (target === 'homeSubtitle') {
         await saveSettings({
           home_subtitle_image_url: imageUrl,
           home_subtitle_mode: 'image',
@@ -399,7 +441,11 @@ export default function AdminClient() {
     setSavingAsset(target)
 
     try {
-      if (target === 'homeSubtitle') {
+      if (target === 'homeFooterLogo') {
+        await saveSettings({ home_footer_logo_url: null })
+        setHomeFooterLogoUrl(null)
+        setHomeFooterLogoFile(null)
+      } else if (target === 'homeSubtitle') {
         await saveSettings({
           home_subtitle_image_url: null,
           home_subtitle_mode: 'text',
@@ -432,6 +478,46 @@ export default function AdminClient() {
       )
     } finally {
       setSavingAsset(null)
+    }
+  }
+
+  const saveHomeFooterSettings = async () => {
+    const normalizedScale = Math.round(homeFooterLogoScalePercent)
+    const normalizedDisclaimer = homeFooterDisclaimerText.trim()
+
+    if (normalizedScale < 40 || normalizedScale > 500) {
+      alert('A escala do logo do rodapé deve estar entre 40% e 500%.')
+      return
+    }
+
+    if (normalizedDisclaimer.length > 500) {
+      alert('O disclaimer deve ter no máximo 500 caracteres.')
+      return
+    }
+
+    if (showHomeFooterDisclaimer && !normalizedDisclaimer) {
+      alert('Escreve o texto do disclaimer ou desativa a checkbox.')
+      return
+    }
+
+    setSavingHomeFooter(true)
+
+    try {
+      await saveSettings({
+        home_footer_logo_scale_percent: normalizedScale,
+        home_footer_disclaimer_text: normalizedDisclaimer,
+        show_home_footer_disclaimer: showHomeFooterDisclaimer,
+      })
+      setHomeFooterLogoScalePercent(normalizedScale)
+      setHomeFooterDisclaimerText(normalizedDisclaimer)
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao guardar rodapé da página principal'
+      )
+    } finally {
+      setSavingHomeFooter(false)
     }
   }
 
@@ -1044,6 +1130,78 @@ export default function AdminClient() {
                 >
                   {savingEventTitle ? 'A guardar...' : 'Guardar detalhes'}
                 </button>
+              </div>
+            </div>
+
+            <div className="theme-neon-shell rounded-[30px] p-5 md:p-6">
+              <div className="mb-5">
+                <p className="theme-neon-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em]">
+                  Rodapé da Home
+                </p>
+                <h2 className="theme-neon-heading mt-4 text-2xl font-black">
+                  Logo Q26 e disclaimer
+                </h2>
+                <p className="theme-neon-muted mt-2 text-sm">
+                  Adiciona um logo no fundo da página principal e, se quiseres,
+                  mostra um disclaimer por baixo.
+                </p>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
+                <AssetCard
+                  title="Logo do rodapé"
+                  currentImage={homeFooterLogoUrl}
+                  selectedFile={homeFooterLogoFile}
+                  saving={savingAsset === 'homeFooterLogo'}
+                  previewMode="contain"
+                  onFileChange={setHomeFooterLogoFile}
+                  onSave={() => void saveAssetImage('homeFooterLogo')}
+                  onClear={() => void clearAssetImage('homeFooterLogo')}
+                >
+                  <LogoScaleControl
+                    label="Escala do logo"
+                    value={homeFooterLogoScalePercent}
+                    onChange={setHomeFooterLogoScalePercent}
+                  />
+                </AssetCard>
+
+                <div className="theme-neon-panel rounded-[28px] p-4">
+                  <label className="mb-3 flex cursor-pointer items-center gap-3 text-sm font-bold text-white/84">
+                    <input
+                      type="checkbox"
+                      checked={showHomeFooterDisclaimer}
+                      onChange={(event) =>
+                        setShowHomeFooterDisclaimer(event.target.checked)
+                      }
+                      className="h-5 w-5 accent-cyan-300"
+                    />
+                    Mostrar disclaimer por baixo do logo
+                  </label>
+
+                  <textarea
+                    value={homeFooterDisclaimerText}
+                    maxLength={500}
+                    onChange={(event) =>
+                      setHomeFooterDisclaimerText(event.target.value)
+                    }
+                    placeholder="Escreve aqui o disclaimer..."
+                    className={`${adminInputClass} min-h-32 resize-y`}
+                  />
+
+                  <p className="mt-2 text-xs text-white/52">
+                    {homeFooterDisclaimerText.trim().length || 0}/500 caracteres
+                  </p>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => void saveHomeFooterSettings()}
+                      disabled={savingHomeFooter}
+                      className={`${adminSecondaryBtnClass} px-4 py-2 text-sm`}
+                    >
+                      {savingHomeFooter ? 'A guardar...' : 'Guardar rodapé'}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 

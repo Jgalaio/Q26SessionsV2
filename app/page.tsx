@@ -19,6 +19,12 @@ export default function HomePage() {
   const [homeSubtitleImageUrl, setHomeSubtitleImageUrl] = useState<string | null>(null)
   const [homeSubtitleImageScalePercent, setHomeSubtitleImageScalePercent] =
     useState(100)
+  const [homeFooterLogoUrl, setHomeFooterLogoUrl] = useState<string | null>(null)
+  const [homeFooterLogoScalePercent, setHomeFooterLogoScalePercent] =
+    useState(100)
+  const [homeFooterDisclaimerText, setHomeFooterDisclaimerText] = useState('')
+  const [showHomeFooterDisclaimer, setShowHomeFooterDisclaimer] =
+    useState(false)
   const [showEventTitle, setShowEventTitle] = useState(true)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
 
@@ -49,6 +55,12 @@ export default function HomePage() {
     setHomeSubtitleImageScalePercent(
       data?.home_subtitle_image_scale_percent ?? 100
     )
+    setHomeFooterLogoUrl(data?.home_footer_logo_url || null)
+    setHomeFooterLogoScalePercent(
+      data?.home_footer_logo_scale_percent ?? 100
+    )
+    setHomeFooterDisclaimerText(data?.home_footer_disclaimer_text || '')
+    setShowHomeFooterDisclaimer(data?.show_home_footer_disclaimer ?? false)
     setShowEventTitle(data?.show_event_title_home ?? true)
     setHomeLogoScalePercent(
       data?.home_logo_scale_percent ?? data?.logo_scale_percent ?? 100
@@ -232,6 +244,31 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+
+        {(homeFooterLogoUrl ||
+          (showHomeFooterDisclaimer && homeFooterDisclaimerText)) && (
+          <footer className="mt-10 flex justify-center pb-4 text-center">
+            <div className="theme-neon-shell rounded-[30px] px-6 py-6 md:px-8">
+              {homeFooterLogoUrl && (
+                <img
+                  src={homeFooterLogoUrl}
+                  alt="Logo Q26"
+                  className="theme-neon-logo mx-auto h-auto w-auto"
+                  style={{
+                    maxHeight: `${90 * (homeFooterLogoScalePercent / 100)}px`,
+                    maxWidth: `${260 * (homeFooterLogoScalePercent / 100)}px`,
+                  }}
+                />
+              )}
+
+              {showHomeFooterDisclaimer && homeFooterDisclaimerText && (
+                <p className="theme-neon-muted mx-auto mt-4 max-w-3xl text-xs leading-5 md:text-sm">
+                  {homeFooterDisclaimerText}
+                </p>
+              )}
+            </div>
+          </footer>
+        )}
       </div>
     </main>
   )
