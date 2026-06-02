@@ -29,7 +29,8 @@ export default function PrintClient() {
   const [end, setEnd] = useState(100)
   const [onlyAvailable, setOnlyAvailable] = useState(true)
   const [mode, setMode] = useState<PrintMode>('ticket')
-  const [version, setVersion] = useState<PrintVersion>('v1')
+  const [version, setVersion] = useState<PrintVersion>('v2')
+  const [resettingCodes, setResettingCodes] = useState(false)
 
   useEffect(() => {
     void fetchCodes()
@@ -37,7 +38,7 @@ export default function PrintClient() {
 
   useEffect(() => {
     applyFilter()
-  }, [codes, start, end, onlyAvailable])
+  }, [codes, start, end, onlyAvailable, version])
 
   useEffect(() => {
     void generateQR()
@@ -53,7 +54,10 @@ export default function PrintClient() {
     let list = [...codes]
 
     if (onlyAvailable) {
-      list = list.filter((code) => !code.distributed)
+      list =
+        version === 'v2'
+          ? list.filter((code) => !code.distributed && !code.used)
+          : list.filter((code) => !code.distributed)
     }
 
     const slice = list.slice(start - 1, end)
@@ -95,6 +99,39 @@ export default function PrintClient() {
     void fetchCodes()
   }
 
+  const resetUsedCodes = async () => {
+    const confirmReset = confirm(
+      'Isto vai colocar todos os códigos como disponíveis novamente. Continuar?'
+    )
+
+    if (!confirmReset) return
+
+    setResettingCodes(true)
+
+    try {
+      const res = await fetch('/api/codes/reset-used', {
+        method: 'POST',
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro ao resetar códigos')
+      }
+
+      alert('Códigos resetados com sucesso.')
+      void fetchCodes()
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao resetar códigos utilizados'
+      )
+    } finally {
+      setResettingCodes(false)
+    }
+  }
+
   const sharedProps = {
     start,
     end,
@@ -110,6 +147,8 @@ export default function PrintClient() {
     setMode,
     setVersion,
     markAsDistributed,
+    resetUsedCodes,
+    resettingCodes,
   }
 
   if (version === 'v2') {
@@ -134,6 +173,8 @@ type PrintViewProps = {
   setMode: (value: PrintMode) => void
   setVersion: (value: PrintVersion) => void
   markAsDistributed: () => void
+  resetUsedCodes: () => void
+  resettingCodes: boolean
 }
 
 function PrintVersionOne({
@@ -416,8 +457,12 @@ function PrintVersionTwo({
   setMode,
   setVersion,
   markAsDistributed,
+  resetUsedCodes,
+  resettingCodes,
 }: PrintViewProps) {
-  const availableCount = codes.filter((code) => !code.distributed).length
+  const availableCount = codes.filter(
+    (code) => !code.distributed && !code.used
+  ).length
   const distributedCount = codes.filter((code) => code.distributed).length
   const usedCount = codes.filter((code) => code.used).length
 
@@ -537,7 +582,7 @@ function PrintVersionTwo({
                 onChange={() => setOnlyAvailable(!onlyAvailable)}
                 className="h-5 w-5 accent-cyan-300"
               />
-              Só códigos não entregues
+              Só códigos disponíveis
             </label>
 
             <div className="flex flex-wrap gap-3 text-sm text-white/62">
@@ -545,6 +590,25 @@ function PrintVersionTwo({
               <span>{items.length} QR preparados</span>
               <span>{modeLabels[mode]}</span>
             </div>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 border-t border-white/10 pt-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-white/82">
+                Reset de códigos utilizados
+              </p>
+              <p className="mt-1 text-xs text-white/52">
+                Coloca todos os códigos como disponíveis para uma nova ronda.
+              </p>
+            </div>
+
+            <button
+              onClick={resetUsedCodes}
+              disabled={resettingCodes}
+              className="rounded-2xl bg-red-500/90 px-5 py-3 font-bold text-white transition hover:bg-red-500 disabled:opacity-50"
+            >
+              {resettingCodes ? 'A resetar...' : 'Resetar códigos'}
+            </button>
           </div>
         </section>
 
