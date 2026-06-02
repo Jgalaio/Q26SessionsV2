@@ -11,6 +11,22 @@ type Dj = {
 }
 
 const CODE_REGEX = /^PS-[A-Z0-9]{4}-\d{6}$/
+const CODE_MATCH_REGEX = /PS-[A-Z0-9]{4}-\d{6}/
+
+function extractVoteCode(value: string) {
+  const normalizedValue = value.trim().toUpperCase()
+  const match = normalizedValue.match(CODE_MATCH_REGEX)
+
+  return match?.[0] || null
+}
+
+function waitForScannerToRender() {
+  return new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve())
+    })
+  })
+}
 
 export default function VotePage() {
   const params = useParams<{ dj: string }>()
@@ -153,7 +169,7 @@ export default function VotePage() {
   const autoVote = async (code: string) => {
     if (loading || voteInFlightRef.current || !dj) return
 
-    const normalizedCode = code.trim().toUpperCase()
+    const normalizedCode = extractVoteCode(code) || code.trim().toUpperCase()
 
     if (!CODE_REGEX.test(normalizedCode)) {
       setErrorMessage('Código inválido. Confirma o formato e tenta novamente.')
@@ -204,19 +220,30 @@ export default function VotePage() {
     setErrorMessage('')
     setScanning(true)
 
+    await waitForScannerToRender()
+
     const scanner = new Html5Qrcode('reader')
     scannerRef.current = scanner
 
     try {
       await scanner.start(
         { facingMode: 'environment' },
-        { fps: 12, qrbox: 260 },
+        {
+          fps: 10,
+          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
+            const size = Math.floor(Math.min(Math.max(minEdge * 0.72, 180), 320))
+
+            return { width: size, height: size }
+          },
+        },
         (decodedText) => {
-          const match = decodedText.match(CODE_REGEX)
+          const code = extractVoteCode(decodedText)
 
-          if (!match) return
-
-          const code = match[0]
+          if (!code) {
+            setErrorMessage('QR lido, mas não encontrei um código de voto válido.')
+            return
+          }
 
           if (code === lastScanRef.current || voteInFlightRef.current) return
 
@@ -342,8 +369,8 @@ export default function VotePage() {
             <div className="relative">
               <div
                 id="reader"
-                className={`w-full rounded-xl overflow-hidden ${
-                  scanning ? 'block' : 'hidden'
+                className={`w-full rounded-xl overflow-hidden bg-black/35 ${
+                  scanning ? 'block min-h-[260px]' : 'hidden'
                 }`}
               />
 

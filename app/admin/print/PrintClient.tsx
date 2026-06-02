@@ -71,7 +71,7 @@ export default function PrintClient() {
           version === 'v2'
             ? await QRCode.toDataURL(code.code, {
                 errorCorrectionLevel: 'M',
-                margin: 1,
+                margin: 4,
                 scale: 8,
               })
             : await QRCode.toDataURL(code.code)
