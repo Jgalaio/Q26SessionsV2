@@ -77,17 +77,6 @@ export default function HomePage() {
           <p className="theme-neon-heading text-lg md:text-xl font-semibold">
             Vota no teu DJ favorito
           </p>
-
-          <div className="mt-5 flex justify-center">
-            <div className="theme-neon-stat rounded-2xl px-6 py-3">
-              <p className="text-xs uppercase tracking-[0.28em] text-white/60">
-                Total de votos
-              </p>
-              <p className="mt-1 text-2xl font-black theme-neon-heading">
-                {totalVotes}
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* 🏆 TOP 3 */}
@@ -201,6 +190,17 @@ export default function HomePage() {
             )
           })}
 
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <div className="theme-neon-shell rounded-[28px] px-8 py-5 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/60">
+              Total de votos
+            </p>
+            <p className="theme-neon-heading mt-2 text-4xl font-black md:text-5xl">
+              {totalVotes}
+            </p>
+          </div>
         </div>
       </div>
     </main>
