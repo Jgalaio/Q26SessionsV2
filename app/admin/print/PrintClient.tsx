@@ -33,6 +33,7 @@ export default function PrintClient() {
   const [mode, setMode] = useState<PrintMode>('ticket')
   const [version, setVersion] = useState<PrintVersion>('v2')
   const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
+  const [showEventTitle, setShowEventTitle] = useState(true)
   const [resettingCodes, setResettingCodes] = useState(false)
   const [markingDistributed, setMarkingDistributed] = useState(false)
 
@@ -59,6 +60,7 @@ export default function PrintClient() {
     const res = await fetch('/api/settings')
     const data = await res.json()
     setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
+    setShowEventTitle(data?.show_event_title_print ?? true)
   }
 
   const applyFilter = () => {
@@ -199,6 +201,7 @@ export default function PrintClient() {
     mode,
     version,
     eventTitle,
+    showEventTitle,
     items,
     codes,
     filtered,
@@ -228,6 +231,7 @@ type PrintViewProps = {
   mode: PrintMode
   version: PrintVersion
   eventTitle: string
+  showEventTitle: boolean
   items: VoteCode[]
   codes: VoteCode[]
   filtered: VoteCode[]
@@ -250,6 +254,7 @@ function PrintVersionOne({
   mode,
   version,
   eventTitle,
+  showEventTitle,
   items,
   filtered,
   setStart,
@@ -344,9 +349,11 @@ function PrintVersionOne({
                 VOTA NO TEU DJ PREFERIDO
               </p>
 
-              <p className="text-[9px] text-gray-600 mb-1">
-                {eventTitle}
-              </p>
+              {showEventTitle && (
+                <p className="text-[9px] text-gray-600 mb-1">
+                  {eventTitle}
+                </p>
+              )}
 
               <img src={item.qr} className="w-24 mx-auto mb-2" />
 
@@ -441,9 +448,11 @@ function PrintVersionOne({
                       VOTA NO TEU DJ PREFERIDO
                     </p>
 
-                    <p className="text-[9px] text-gray-600 mb-2">
-                      {eventTitle}
-                    </p>
+                    {showEventTitle && (
+                      <p className="text-[9px] text-gray-600 mb-2">
+                        {eventTitle}
+                      </p>
+                    )}
 
                     <img src={item.qr} className="w-24 mx-auto mb-3" />
 
@@ -489,9 +498,11 @@ function PrintVersionOne({
                       VOTA NO TEU DJ
                     </p>
 
-                    <p className="text-[7px] text-gray-600 mb-1">
-                      {eventTitle}
-                    </p>
+                    {showEventTitle && (
+                      <p className="text-[7px] text-gray-600 mb-1">
+                        {eventTitle}
+                      </p>
+                    )}
 
                     <img src={item.qr} className="w-16 mx-auto mb-1" />
 
@@ -521,6 +532,7 @@ function PrintVersionTwo({
   mode,
   version,
   eventTitle,
+  showEventTitle,
   items,
   codes,
   filtered,
@@ -699,17 +711,23 @@ function PrintVersionTwo({
           ) : (
             <>
               {mode === 'ticket' && (
-                <V2TicketLayout items={items} eventTitle={eventTitle} />
+                <V2TicketLayout
+                  items={items}
+                  eventTitle={showEventTitle ? eventTitle : ''}
+                />
               )}
               {mode === 'label-62x29' && (
-                <V2LabelLayout items={items} eventTitle={eventTitle} />
+                <V2LabelLayout
+                  items={items}
+                  eventTitle={showEventTitle ? eventTitle : ''}
+                />
               )}
               {mode === 'a4-12' && (
                 <V2A4Layout
                   items={items}
                   itemsPerPage={12}
                   compact={false}
-                  eventTitle={eventTitle}
+                  eventTitle={showEventTitle ? eventTitle : ''}
                 />
               )}
               {mode === 'a4-24' && (
@@ -717,7 +735,7 @@ function PrintVersionTwo({
                   items={items}
                   itemsPerPage={24}
                   compact
-                  eventTitle={eventTitle}
+                  eventTitle={showEventTitle ? eventTitle : ''}
                 />
               )}
             </>
@@ -848,9 +866,11 @@ function V2LabelLayout({
           />
 
           <div className="min-w-0 flex-1 text-center">
-            <p className="text-[6px] font-black uppercase tracking-[0.16em]">
-              {eventTitle}
-            </p>
+            {eventTitle && (
+              <p className="text-[6px] font-black uppercase tracking-[0.16em]">
+                {eventTitle}
+              </p>
+            )}
             <p className="mt-[1mm] text-[10px] font-black tracking-[0.12em]">
               {item.code}
             </p>
@@ -888,9 +908,11 @@ function V2A4Layout({
         >
           <div className="mb-[5mm] flex items-end justify-between border-b border-zinc-300 pb-[3mm]">
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.22em]">
-                {eventTitle}
-              </p>
+              {eventTitle && (
+                <p className="text-[9px] font-black uppercase tracking-[0.22em]">
+                  {eventTitle}
+                </p>
+              )}
               <h2 className="mt-[1mm] text-[18px] font-black">
                 Senhas de votação
               </h2>
@@ -971,13 +993,15 @@ function V2TicketHeader({
       >
         Vota no teu DJ
       </p>
-      <p
-        className={
-          compact ? 'text-[6px] text-zinc-500' : 'text-[8px] text-zinc-500'
-        }
-      >
-        {eventTitle}
-      </p>
+      {eventTitle && (
+        <p
+          className={
+            compact ? 'text-[6px] text-zinc-500' : 'text-[8px] text-zinc-500'
+          }
+        >
+          {eventTitle}
+        </p>
+      )}
     </div>
   )
 }

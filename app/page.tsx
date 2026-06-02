@@ -11,6 +11,7 @@ export default function HomePage() {
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
+  const [showEventTitle, setShowEventTitle] = useState(true)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function HomePage() {
     setHomeBackgroundUrl(data?.home_background_url || null)
     setLogoUrl(data?.logo_url || null)
     setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
+    setShowEventTitle(data?.show_event_title_home ?? true)
     setHomeLogoScalePercent(
       data?.home_logo_scale_percent ?? data?.logo_scale_percent ?? 100
     )
@@ -54,14 +56,18 @@ export default function HomePage() {
 
         {/* TÍTULO */}
         <div className="theme-neon-shell rounded-[32px] px-6 py-8 md:px-10 md:py-10 text-center mb-10">
-          <div className="theme-neon-chip inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em]">
-            {eventTitle}
-          </div>
+          {showEventTitle && (
+            <div className="theme-neon-chip inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em]">
+              {eventTitle}
+            </div>
+          )}
 
           <img
             src={logoUrl || '/tittle.png'}
             alt="Logo"
-            className="theme-neon-logo mx-auto mt-6 mb-4 h-auto w-auto"
+            className={`theme-neon-logo mx-auto mb-4 h-auto w-auto ${
+              showEventTitle ? 'mt-6' : ''
+            }`}
             style={{
               maxHeight: `${112 * (homeLogoScalePercent / 100)}px`,
               maxWidth: `${250 * (homeLogoScalePercent / 100)}px`,

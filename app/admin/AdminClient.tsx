@@ -6,6 +6,11 @@ import type { ReactNode } from 'react'
 
 type Tab = 'djs' | 'ranking' | 'control'
 type BrandAssetTarget = 'home' | 'vote' | 'poster' | 'logo'
+type EventTitleVisibilityOption = {
+  label: string
+  checked: boolean
+  onChange: (value: boolean) => void
+}
 
 const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
 
@@ -35,6 +40,10 @@ export default function AdminClient() {
   const [posterBackgroundUrl, setPosterBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
+  const [showEventTitleHome, setShowEventTitleHome] = useState(true)
+  const [showEventTitleLive, setShowEventTitleLive] = useState(true)
+  const [showEventTitlePoster, setShowEventTitlePoster] = useState(true)
+  const [showEventTitlePrint, setShowEventTitlePrint] = useState(true)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
   const [voteLogoScalePercent, setVoteLogoScalePercent] = useState(100)
   const [posterLogoScalePercent, setPosterLogoScalePercent] = useState(100)
@@ -213,6 +222,10 @@ export default function AdminClient() {
     setPosterBackgroundUrl(data?.poster_background_url || null)
     setLogoUrl(data?.logo_url || null)
     setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
+    setShowEventTitleHome(data?.show_event_title_home ?? true)
+    setShowEventTitleLive(data?.show_event_title_live ?? true)
+    setShowEventTitlePoster(data?.show_event_title_poster ?? true)
+    setShowEventTitlePrint(data?.show_event_title_print ?? true)
     const defaultScale = data?.logo_scale_percent ?? 100
     setHomeLogoScalePercent(data?.home_logo_scale_percent ?? defaultScale)
     setVoteLogoScalePercent(data?.vote_logo_scale_percent ?? defaultScale)
@@ -239,7 +252,13 @@ export default function AdminClient() {
     setSavingEventTitle(true)
 
     try {
-      await saveSettings({ event_title: normalizedTitle })
+      await saveSettings({
+        event_title: normalizedTitle,
+        show_event_title_home: showEventTitleHome,
+        show_event_title_live: showEventTitleLive,
+        show_event_title_poster: showEventTitlePoster,
+        show_event_title_print: showEventTitlePrint,
+      })
       setEventTitle(normalizedTitle)
     } catch (error) {
       alert(
@@ -440,6 +459,28 @@ export default function AdminClient() {
 
   const leadingDj = ranking[0]
   const topVotes = Number(leadingDj?.votes || 0)
+  const eventTitleVisibilityOptions: EventTitleVisibilityOption[] = [
+    {
+      label: 'Página principal',
+      checked: showEventTitleHome,
+      onChange: setShowEventTitleHome,
+    },
+    {
+      label: 'Página Live',
+      checked: showEventTitleLive,
+      onChange: setShowEventTitleLive,
+    },
+    {
+      label: 'Posters dos DJs',
+      checked: showEventTitlePoster,
+      onChange: setShowEventTitlePoster,
+    },
+    {
+      label: 'Impressão de códigos',
+      checked: showEventTitlePrint,
+      onChange: setShowEventTitlePrint,
+    },
+  ]
 
   return (
     <main className="theme-neon-page relative min-h-screen overflow-hidden">
@@ -811,8 +852,7 @@ export default function AdminClient() {
                     Título do evento
                   </h2>
                   <p className="theme-neon-muted mt-2 text-sm">
-                    Este nome aparece na página principal, live, posters e
-                    impressão de códigos.
+                    Escolhe o nome e os locais onde ele deve aparecer.
                   </p>
 
                   <input
@@ -826,6 +866,25 @@ export default function AdminClient() {
                   <p className="mt-2 text-xs text-white/52">
                     {eventTitle.trim().length || 0}/80 caracteres
                   </p>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {eventTitleVisibilityOptions.map((option) => (
+                      <label
+                        key={option.label}
+                        className="theme-neon-panel flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/82"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={option.checked}
+                          onChange={(event) =>
+                            option.onChange(event.target.checked)
+                          }
+                          className="h-5 w-5 accent-cyan-300"
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
 
                 <button

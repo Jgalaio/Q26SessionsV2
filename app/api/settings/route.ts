@@ -3,6 +3,12 @@ import { supabaseAdmin } from '@/lib/supabase-server'
 import { requireAdminApiAccess } from '@/lib/admin-api-auth'
 
 const MAX_EVENT_TITLE_LENGTH = 80
+const EVENT_TITLE_VISIBILITY_FIELDS = [
+  'show_event_title_home',
+  'show_event_title_live',
+  'show_event_title_poster',
+  'show_event_title_print',
+] as const
 
 export async function GET() {
   const { data } = await supabaseAdmin
@@ -47,6 +53,19 @@ export async function POST(req: Request) {
     }
 
     updates.event_title = normalizedTitle
+  }
+
+  for (const field of EVENT_TITLE_VISIBILITY_FIELDS) {
+    if (field in body) {
+      if (typeof body[field] !== 'boolean') {
+        return NextResponse.json(
+          { error: 'Visibilidade do titulo do evento invalida' },
+          { status: 400 }
+        )
+      }
+
+      updates[field] = body[field]
+    }
   }
 
   if ('voting_open' in body) {
