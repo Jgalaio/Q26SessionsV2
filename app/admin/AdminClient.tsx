@@ -879,6 +879,30 @@ export default function AdminClient() {
                   </p>
 
                   <div className="mt-5">
+                    <p className="mb-3 text-sm font-semibold text-white/82">
+                      Mostrar título em
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {eventTitleVisibilityOptions.map((option) => (
+                        <label
+                          key={option.label}
+                          className="theme-neon-panel flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/82"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={option.checked}
+                            onChange={(event) =>
+                              option.onChange(event.target.checked)
+                            }
+                            className="h-5 w-5 accent-cyan-300"
+                          />
+                          {option.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-5">
                     <label className="mb-2 block text-sm font-semibold text-white/82">
                       Texto da página principal
                     </label>
@@ -892,25 +916,6 @@ export default function AdminClient() {
                     <p className="mt-2 text-xs text-white/52">
                       {homeSubtitle.trim().length || 0}/120 caracteres
                     </p>
-                  </div>
-
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {eventTitleVisibilityOptions.map((option) => (
-                      <label
-                        key={option.label}
-                        className="theme-neon-panel flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/82"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={option.checked}
-                          onChange={(event) =>
-                            option.onChange(event.target.checked)
-                          }
-                          className="h-5 w-5 accent-cyan-300"
-                        />
-                        {option.label}
-                      </label>
-                    ))}
                   </div>
                 </div>
 
