@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 
+const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+
 export default function DjPosterPage() {
   const [items, setItems] = useState<any[]>([])
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
   const [posterLogoScalePercent, setPosterLogoScalePercent] = useState(100)
   const [posterBackgroundUrl, setPosterBackgroundUrl] = useState<string | null>(null)
 
@@ -39,6 +42,7 @@ export default function DjPosterPage() {
     const res = await fetch('/api/settings')
     const data = await res.json()
     setLogoUrl(data?.logo_url || null)
+    setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
     setPosterBackgroundUrl(data?.poster_background_url || null)
     setPosterLogoScalePercent(
       data?.poster_logo_scale_percent ?? data?.logo_scale_percent ?? 100
@@ -77,7 +81,7 @@ export default function DjPosterPage() {
           <div className="relative z-10 mx-auto flex h-full w-full max-w-[245mm] flex-col gap-6 p-8 md:gap-8 md:p-10 print:gap-[6mm] print:p-[12mm]">
             <div className="theme-neon-shell shrink-0 rounded-[40px] px-8 py-7 md:px-12 md:py-9 print:rounded-[10mm] print:px-[10mm] print:py-[8mm]">
               <div className="theme-neon-chip inline-flex rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-[0.34em]">
-                Quarentões 26 Sessions
+                {eventTitle}
               </div>
 
               <img

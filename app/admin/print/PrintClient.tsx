@@ -13,6 +13,8 @@ type VoteCode = {
 type PrintMode = 'ticket' | 'a4-12' | 'a4-24' | 'label-62x29'
 type PrintVersion = 'v1' | 'v2'
 
+const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+
 const modeLabels: Record<PrintMode, string> = {
   ticket: 'Talão térmico',
   'a4-12': 'A4 3x4, 12 códigos',
@@ -30,11 +32,13 @@ export default function PrintClient() {
   const [onlyAvailable, setOnlyAvailable] = useState(true)
   const [mode, setMode] = useState<PrintMode>('ticket')
   const [version, setVersion] = useState<PrintVersion>('v2')
+  const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
   const [resettingCodes, setResettingCodes] = useState(false)
   const [markingDistributed, setMarkingDistributed] = useState(false)
 
   useEffect(() => {
     void fetchCodes()
+    void fetchSettings()
   }, [])
 
   useEffect(() => {
@@ -49,6 +53,12 @@ export default function PrintClient() {
     const res = await fetch('/api/codes')
     const data = await res.json()
     setCodes(data || [])
+  }
+
+  const fetchSettings = async () => {
+    const res = await fetch('/api/settings')
+    const data = await res.json()
+    setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
   }
 
   const applyFilter = () => {
@@ -188,6 +198,7 @@ export default function PrintClient() {
     onlyAvailable,
     mode,
     version,
+    eventTitle,
     items,
     codes,
     filtered,
@@ -216,6 +227,7 @@ type PrintViewProps = {
   onlyAvailable: boolean
   mode: PrintMode
   version: PrintVersion
+  eventTitle: string
   items: VoteCode[]
   codes: VoteCode[]
   filtered: VoteCode[]
@@ -237,6 +249,7 @@ function PrintVersionOne({
   onlyAvailable,
   mode,
   version,
+  eventTitle,
   items,
   filtered,
   setStart,
@@ -332,7 +345,7 @@ function PrintVersionOne({
               </p>
 
               <p className="text-[9px] text-gray-600 mb-1">
-                Quarentões 26 Sessions
+                {eventTitle}
               </p>
 
               <img src={item.qr} className="w-24 mx-auto mb-2" />
@@ -429,7 +442,7 @@ function PrintVersionOne({
                     </p>
 
                     <p className="text-[9px] text-gray-600 mb-2">
-                      Quarentões 26 Sessions
+                      {eventTitle}
                     </p>
 
                     <img src={item.qr} className="w-24 mx-auto mb-3" />
@@ -477,7 +490,7 @@ function PrintVersionOne({
                     </p>
 
                     <p className="text-[7px] text-gray-600 mb-1">
-                      Q26 Sessions
+                      {eventTitle}
                     </p>
 
                     <img src={item.qr} className="w-16 mx-auto mb-1" />
@@ -507,6 +520,7 @@ function PrintVersionTwo({
   onlyAvailable,
   mode,
   version,
+  eventTitle,
   items,
   codes,
   filtered,
@@ -684,13 +698,27 @@ function PrintVersionTwo({
             </div>
           ) : (
             <>
-              {mode === 'ticket' && <V2TicketLayout items={items} />}
-              {mode === 'label-62x29' && <V2LabelLayout items={items} />}
+              {mode === 'ticket' && (
+                <V2TicketLayout items={items} eventTitle={eventTitle} />
+              )}
+              {mode === 'label-62x29' && (
+                <V2LabelLayout items={items} eventTitle={eventTitle} />
+              )}
               {mode === 'a4-12' && (
-                <V2A4Layout items={items} itemsPerPage={12} compact={false} />
+                <V2A4Layout
+                  items={items}
+                  itemsPerPage={12}
+                  compact={false}
+                  eventTitle={eventTitle}
+                />
               )}
               {mode === 'a4-24' && (
-                <V2A4Layout items={items} itemsPerPage={24} compact />
+                <V2A4Layout
+                  items={items}
+                  itemsPerPage={24}
+                  compact
+                  eventTitle={eventTitle}
+                />
               )}
             </>
           )}
@@ -768,7 +796,13 @@ function PrintStat({
   )
 }
 
-function V2TicketLayout({ items }: { items: VoteCode[] }) {
+function V2TicketLayout({
+  items,
+  eventTitle,
+}: {
+  items: VoteCode[]
+  eventTitle: string
+}) {
   return (
     <div className="mx-auto flex max-w-[360px] flex-col gap-4 print:max-w-none print:gap-0">
       {items.map((item) => (
@@ -776,7 +810,7 @@ function V2TicketLayout({ items }: { items: VoteCode[] }) {
           key={item.code}
           className="q26-v2-ticket mx-auto w-[78mm] bg-white px-[5mm] py-[4mm] text-center text-black shadow-xl print:shadow-none"
         >
-          <V2TicketHeader compact={false} />
+          <V2TicketHeader compact={false} eventTitle={eventTitle} />
 
           <img
             src={item.qr}
@@ -793,7 +827,13 @@ function V2TicketLayout({ items }: { items: VoteCode[] }) {
   )
 }
 
-function V2LabelLayout({ items }: { items: VoteCode[] }) {
+function V2LabelLayout({
+  items,
+  eventTitle,
+}: {
+  items: VoteCode[]
+  eventTitle: string
+}) {
   return (
     <div className="mx-auto flex max-w-[380px] flex-col items-center gap-4 print:max-w-none print:gap-0">
       {items.map((item) => (
@@ -809,7 +849,7 @@ function V2LabelLayout({ items }: { items: VoteCode[] }) {
 
           <div className="min-w-0 flex-1 text-center">
             <p className="text-[6px] font-black uppercase tracking-[0.16em]">
-              Q26 Sessions
+              {eventTitle}
             </p>
             <p className="mt-[1mm] text-[10px] font-black tracking-[0.12em]">
               {item.code}
@@ -828,10 +868,12 @@ function V2A4Layout({
   items,
   itemsPerPage,
   compact,
+  eventTitle,
 }: {
   items: VoteCode[]
   itemsPerPage: number
   compact: boolean
+  eventTitle: string
 }) {
   const pages = chunk(items, itemsPerPage)
 
@@ -847,7 +889,7 @@ function V2A4Layout({
           <div className="mb-[5mm] flex items-end justify-between border-b border-zinc-300 pb-[3mm]">
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.22em]">
-                Q26 Sessions
+                {eventTitle}
               </p>
               <h2 className="mt-[1mm] text-[18px] font-black">
                 Senhas de votação
@@ -865,7 +907,12 @@ function V2A4Layout({
             }`}
           >
             {pageItems.map((item) => (
-              <V2A4Card key={item.code} item={item} compact={compact} />
+              <V2A4Card
+                key={item.code}
+                item={item}
+                compact={compact}
+                eventTitle={eventTitle}
+              />
             ))}
           </div>
         </section>
@@ -877,9 +924,11 @@ function V2A4Layout({
 function V2A4Card({
   item,
   compact,
+  eventTitle,
 }: {
   item: VoteCode
   compact: boolean
+  eventTitle: string
 }) {
   return (
     <article
@@ -887,7 +936,7 @@ function V2A4Card({
         compact ? 'min-h-[39mm] p-[2.5mm]' : 'min-h-[58mm] p-[4mm]'
       }`}
     >
-      <V2TicketHeader compact={compact} />
+      <V2TicketHeader compact={compact} eventTitle={eventTitle} />
 
       <img
         src={item.qr}
@@ -906,7 +955,13 @@ function V2A4Card({
   )
 }
 
-function V2TicketHeader({ compact }: { compact: boolean }) {
+function V2TicketHeader({
+  compact,
+  eventTitle,
+}: {
+  compact: boolean
+  eventTitle: string
+}) {
   return (
     <div>
       <p
@@ -921,7 +976,7 @@ function V2TicketHeader({ compact }: { compact: boolean }) {
           compact ? 'text-[6px] text-zinc-500' : 'text-[8px] text-zinc-500'
         }
       >
-        Q26 Sessions
+        {eventTitle}
       </p>
     </div>
   )

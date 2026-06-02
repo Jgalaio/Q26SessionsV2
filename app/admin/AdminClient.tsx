@@ -7,6 +7,8 @@ import type { ReactNode } from 'react'
 type Tab = 'djs' | 'ranking' | 'control'
 type BrandAssetTarget = 'home' | 'vote' | 'poster' | 'logo'
 
+const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+
 const adminInputClass =
   'w-full rounded-2xl border border-white/12 bg-[#0c1230]/82 px-4 py-3 text-white placeholder:text-white/38 outline-none transition focus:border-cyan-300/60 focus:bg-[#11183e]'
 
@@ -32,6 +34,7 @@ export default function AdminClient() {
   const [voteBackgroundUrl, setVoteBackgroundUrl] = useState<string | null>(null)
   const [posterBackgroundUrl, setPosterBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
   const [voteLogoScalePercent, setVoteLogoScalePercent] = useState(100)
   const [posterLogoScalePercent, setPosterLogoScalePercent] = useState(100)
@@ -50,6 +53,7 @@ export default function AdminClient() {
   const [realtimeEnabled, setRealtimeEnabled] = useState(false)
   const [savingAsset, setSavingAsset] = useState<BrandAssetTarget | null>(null)
   const [savingLogoScale, setSavingLogoScale] = useState(false)
+  const [savingEventTitle, setSavingEventTitle] = useState(false)
 
   // ================= INIT =================
   useEffect(() => {
@@ -208,6 +212,7 @@ export default function AdminClient() {
     setVoteBackgroundUrl(data?.vote_background_url || null)
     setPosterBackgroundUrl(data?.poster_background_url || null)
     setLogoUrl(data?.logo_url || null)
+    setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
     const defaultScale = data?.logo_scale_percent ?? 100
     setHomeLogoScalePercent(data?.home_logo_scale_percent ?? defaultScale)
     setVoteLogoScalePercent(data?.vote_logo_scale_percent ?? defaultScale)
@@ -220,6 +225,30 @@ export default function AdminClient() {
       setVotingOpen(!votingOpen)
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro ao atualizar votacao')
+    }
+  }
+
+  const saveEventTitle = async () => {
+    const normalizedTitle = eventTitle.trim()
+
+    if (!normalizedTitle || normalizedTitle.length > 80) {
+      alert('O título do evento deve ter entre 1 e 80 caracteres.')
+      return
+    }
+
+    setSavingEventTitle(true)
+
+    try {
+      await saveSettings({ event_title: normalizedTitle })
+      setEventTitle(normalizedTitle)
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao guardar título do evento'
+      )
+    } finally {
+      setSavingEventTitle(false)
     }
   }
 
@@ -426,7 +455,7 @@ export default function AdminClient() {
               </div>
 
               <h1 className="theme-neon-heading mt-5 text-3xl font-black uppercase tracking-[0.12em] md:text-5xl">
-                Admin Q26 Sessions
+                Admin {eventTitle}
               </h1>
 
               <p className="theme-neon-muted mt-4 max-w-xl text-sm leading-6 md:text-base">
@@ -772,6 +801,43 @@ export default function AdminClient() {
 
         {tab === 'control' && (
           <section className="mt-6 space-y-6">
+            <div className="theme-neon-shell rounded-[30px] p-5 md:p-6">
+              <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div>
+                  <p className="theme-neon-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em]">
+                    Detalhes do evento
+                  </p>
+                  <h2 className="theme-neon-heading mt-4 text-2xl font-black">
+                    Título do evento
+                  </h2>
+                  <p className="theme-neon-muted mt-2 text-sm">
+                    Este nome aparece na página principal, live, posters e
+                    impressão de códigos.
+                  </p>
+
+                  <input
+                    value={eventTitle}
+                    maxLength={80}
+                    onChange={(event) => setEventTitle(event.target.value)}
+                    placeholder="Ex: Q26 Sessions"
+                    className={`${adminInputClass} mt-5 max-w-xl`}
+                  />
+
+                  <p className="mt-2 text-xs text-white/52">
+                    {eventTitle.trim().length || 0}/80 caracteres
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => void saveEventTitle()}
+                  disabled={savingEventTitle}
+                  className={`${adminPrimaryBtnClass} w-full lg:w-auto`}
+                >
+                  {savingEventTitle ? 'A guardar...' : 'Guardar título'}
+                </button>
+              </div>
+            </div>
+
             <div className="theme-neon-shell rounded-[30px] p-5 md:p-6">
               <div className="mb-5">
                 <p className="theme-neon-chip inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em]">

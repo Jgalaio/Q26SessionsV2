@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+
 type LiveDj = {
   id: string
   name: string
@@ -19,6 +21,7 @@ export default function LivePage() {
   const [data, setData] = useState<LiveData | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null)
+  const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
 
   useEffect(() => {
@@ -44,6 +47,7 @@ export default function LivePage() {
       const json = await res.json()
 
       setLogoUrl(json?.logo_url || null)
+      setEventTitle(json?.event_title || DEFAULT_EVENT_TITLE)
       setBackgroundUrl(
         json?.home_background_url || json?.vote_background_url || null
       )
@@ -93,7 +97,7 @@ export default function LivePage() {
 
               <p className="theme-neon-muted mt-3 text-sm leading-6 md:text-lg">
                 Acompanha em tempo real quem está a dominar a pista nesta edição
-                do Q26 Sessions.
+                do {eventTitle}.
               </p>
             </div>
 

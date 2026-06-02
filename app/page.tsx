@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
+const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+
 export default function HomePage() {
   const [djs, setDjs] = useState<any[]>([])
   const [totalVotes, setTotalVotes] = useState(0)
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export default function HomePage() {
     const data = await res.json()
     setHomeBackgroundUrl(data?.home_background_url || null)
     setLogoUrl(data?.logo_url || null)
+    setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
     setHomeLogoScalePercent(
       data?.home_logo_scale_percent ?? data?.logo_scale_percent ?? 100
     )
@@ -51,7 +55,7 @@ export default function HomePage() {
         {/* TÍTULO */}
         <div className="theme-neon-shell rounded-[32px] px-6 py-8 md:px-10 md:py-10 text-center mb-10">
           <div className="theme-neon-chip inline-flex items-center rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em]">
-            Q26 Sessions
+            {eventTitle}
           </div>
 
           <img

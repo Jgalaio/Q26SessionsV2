@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { requireAdminApiAccess } from '@/lib/admin-api-auth'
 
+const MAX_EVENT_TITLE_LENGTH = 80
+
 export async function GET() {
   const { data } = await supabaseAdmin
     .from('settings')
@@ -21,6 +23,31 @@ export async function POST(req: Request) {
 
   const body = await req.json()
   const updates: Record<string, boolean | string | number | null> = {}
+
+  if ('event_title' in body) {
+    if (typeof body.event_title !== 'string') {
+      return NextResponse.json(
+        { error: 'Titulo do evento invalido' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedTitle = body.event_title.trim()
+
+    if (
+      normalizedTitle.length === 0 ||
+      normalizedTitle.length > MAX_EVENT_TITLE_LENGTH
+    ) {
+      return NextResponse.json(
+        {
+          error: `Titulo do evento deve ter entre 1 e ${MAX_EVENT_TITLE_LENGTH} caracteres`,
+        },
+        { status: 400 }
+      )
+    }
+
+    updates.event_title = normalizedTitle
+  }
 
   if ('voting_open' in body) {
     if (typeof body.voting_open !== 'boolean') {
