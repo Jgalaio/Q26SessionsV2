@@ -88,33 +88,13 @@ body {
 
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 8mm;
-  }
-
-  @page poster-a3 {
     size: A3 portrait;
-    margin: 0;
-  }
-
-  @page code-a4 {
-    size: A4 portrait;
-    margin: 0;
-  }
-
-  @page code-ticket {
-    size: 80mm 120mm;
-    margin: 0;
-  }
-
-  @page code-label-62x29 {
-    size: 62mm 29mm;
     margin: 0;
   }
 
   html,
   body {
-    background: white;
+    background: black;
     margin: 0;
     padding: 0;
   }
@@ -129,8 +109,6 @@ body {
   }
 
   .poster-a3-page {
-    page: poster-a3;
-    background: black;
     width: 297mm !important;
     height: 420mm !important;
     margin: 0 auto !important;
@@ -138,45 +116,6 @@ body {
   }
 
   .poster-a3-page:last-child {
-    break-after: auto !important;
-  }
-
-  .code-print-root {
-    background: white !important;
-    color: black !important;
-  }
-
-  .code-a4-page {
-    page: code-a4;
-    width: 210mm !important;
-    min-height: 297mm !important;
-    break-inside: avoid;
-    break-after: page;
-  }
-
-  .code-a4-page:last-child {
-    break-after: auto !important;
-  }
-
-  .code-ticket-item {
-    page: code-ticket;
-    margin: 0 auto !important;
-    break-inside: avoid;
-    break-after: page;
-  }
-
-  .code-ticket-item:last-child {
-    break-after: auto !important;
-  }
-
-  .code-label-item {
-    page: code-label-62x29;
-    margin: 0 !important;
-    break-inside: avoid;
-    break-after: page;
-  }
-
-  .code-label-item:last-child {
     break-after: auto !important;
   }
 }
