@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
 const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+const DEFAULT_HOME_SUBTITLE = 'Vota no teu DJ favorito'
 
 export default function HomePage() {
   const [djs, setDjs] = useState<any[]>([])
@@ -11,6 +12,7 @@ export default function HomePage() {
   const [homeBackgroundUrl, setHomeBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
+  const [homeSubtitle, setHomeSubtitle] = useState(DEFAULT_HOME_SUBTITLE)
   const [showEventTitle, setShowEventTitle] = useState(true)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
 
@@ -35,6 +37,7 @@ export default function HomePage() {
     setHomeBackgroundUrl(data?.home_background_url || null)
     setLogoUrl(data?.logo_url || null)
     setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
+    setHomeSubtitle(data?.home_subtitle || DEFAULT_HOME_SUBTITLE)
     setShowEventTitle(data?.show_event_title_home ?? true)
     setHomeLogoScalePercent(
       data?.home_logo_scale_percent ?? data?.logo_scale_percent ?? 100
@@ -75,7 +78,7 @@ export default function HomePage() {
           />
 
           <p className="theme-neon-heading text-lg md:text-xl font-semibold">
-            Vota no teu DJ favorito
+            {homeSubtitle}
           </p>
         </div>
 

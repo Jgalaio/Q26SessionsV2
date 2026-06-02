@@ -13,6 +13,7 @@ type EventTitleVisibilityOption = {
 }
 
 const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+const DEFAULT_HOME_SUBTITLE = 'Vota no teu DJ favorito'
 
 const adminInputClass =
   'w-full rounded-2xl border border-white/12 bg-[#0c1230]/82 px-4 py-3 text-white placeholder:text-white/38 outline-none transition focus:border-cyan-300/60 focus:bg-[#11183e]'
@@ -40,6 +41,7 @@ export default function AdminClient() {
   const [posterBackgroundUrl, setPosterBackgroundUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
+  const [homeSubtitle, setHomeSubtitle] = useState(DEFAULT_HOME_SUBTITLE)
   const [showEventTitleHome, setShowEventTitleHome] = useState(true)
   const [showEventTitleLive, setShowEventTitleLive] = useState(true)
   const [showEventTitlePoster, setShowEventTitlePoster] = useState(true)
@@ -222,6 +224,7 @@ export default function AdminClient() {
     setPosterBackgroundUrl(data?.poster_background_url || null)
     setLogoUrl(data?.logo_url || null)
     setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
+    setHomeSubtitle(data?.home_subtitle || DEFAULT_HOME_SUBTITLE)
     setShowEventTitleHome(data?.show_event_title_home ?? true)
     setShowEventTitleLive(data?.show_event_title_live ?? true)
     setShowEventTitlePoster(data?.show_event_title_poster ?? true)
@@ -243,9 +246,15 @@ export default function AdminClient() {
 
   const saveEventTitle = async () => {
     const normalizedTitle = eventTitle.trim()
+    const normalizedSubtitle = homeSubtitle.trim()
 
     if (!normalizedTitle || normalizedTitle.length > 80) {
       alert('O título do evento deve ter entre 1 e 80 caracteres.')
+      return
+    }
+
+    if (!normalizedSubtitle || normalizedSubtitle.length > 120) {
+      alert('O texto da página principal deve ter entre 1 e 120 caracteres.')
       return
     }
 
@@ -254,12 +263,14 @@ export default function AdminClient() {
     try {
       await saveSettings({
         event_title: normalizedTitle,
+        home_subtitle: normalizedSubtitle,
         show_event_title_home: showEventTitleHome,
         show_event_title_live: showEventTitleLive,
         show_event_title_poster: showEventTitlePoster,
         show_event_title_print: showEventTitlePrint,
       })
       setEventTitle(normalizedTitle)
+      setHomeSubtitle(normalizedSubtitle)
     } catch (error) {
       alert(
         error instanceof Error
@@ -866,6 +877,22 @@ export default function AdminClient() {
                   <p className="mt-2 text-xs text-white/52">
                     {eventTitle.trim().length || 0}/80 caracteres
                   </p>
+
+                  <div className="mt-5">
+                    <label className="mb-2 block text-sm font-semibold text-white/82">
+                      Texto da página principal
+                    </label>
+                    <input
+                      value={homeSubtitle}
+                      maxLength={120}
+                      onChange={(event) => setHomeSubtitle(event.target.value)}
+                      placeholder="Ex: Vota no teu DJ favorito"
+                      className={`${adminInputClass} max-w-xl`}
+                    />
+                    <p className="mt-2 text-xs text-white/52">
+                      {homeSubtitle.trim().length || 0}/120 caracteres
+                    </p>
+                  </div>
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     {eventTitleVisibilityOptions.map((option) => (

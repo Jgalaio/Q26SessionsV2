@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server'
 import { requireAdminApiAccess } from '@/lib/admin-api-auth'
 
 const MAX_EVENT_TITLE_LENGTH = 80
+const MAX_HOME_SUBTITLE_LENGTH = 120
 const EVENT_TITLE_VISIBILITY_FIELDS = [
   'show_event_title_home',
   'show_event_title_live',
@@ -53,6 +54,31 @@ export async function POST(req: Request) {
     }
 
     updates.event_title = normalizedTitle
+  }
+
+  if ('home_subtitle' in body) {
+    if (typeof body.home_subtitle !== 'string') {
+      return NextResponse.json(
+        { error: 'Texto da pagina principal invalido' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedSubtitle = body.home_subtitle.trim()
+
+    if (
+      normalizedSubtitle.length === 0 ||
+      normalizedSubtitle.length > MAX_HOME_SUBTITLE_LENGTH
+    ) {
+      return NextResponse.json(
+        {
+          error: `Texto da pagina principal deve ter entre 1 e ${MAX_HOME_SUBTITLE_LENGTH} caracteres`,
+        },
+        { status: 400 }
+      )
+    }
+
+    updates.home_subtitle = normalizedSubtitle
   }
 
   for (const field of EVENT_TITLE_VISIBILITY_FIELDS) {
