@@ -312,11 +312,11 @@ export default function AdminClient() {
     }
 
     const hasInvalidScale = Object.values(scales).some(
-      (value) => value < 40 || value > 260
+      (value) => value < 40 || value > 500
     )
 
     if (hasInvalidScale) {
-      alert('Escolhe tamanhos entre 40% e 260%')
+      alert('Escolhe tamanhos entre 40% e 500%')
       return
     }
 
@@ -1074,7 +1074,7 @@ function LogoScaleControl({
       <input
         type="range"
         min="40"
-        max="260"
+        max="500"
         step="5"
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
@@ -1084,7 +1084,7 @@ function LogoScaleControl({
       <input
         type="number"
         min="40"
-        max="260"
+        max="500"
         step="5"
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}

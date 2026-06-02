@@ -99,7 +99,7 @@ export async function POST(req: Request) {
 
     const normalizedScale = Math.round(body.logo_scale_percent)
 
-    if (normalizedScale < 40 || normalizedScale > 260) {
+    if (normalizedScale < 40 || normalizedScale > 500) {
       return NextResponse.json(
         { error: 'Tamanho do logo fora do limite permitido' },
         { status: 400 }
@@ -127,7 +127,7 @@ export async function POST(req: Request) {
 
       const normalizedScale = Math.round(body[field])
 
-      if (normalizedScale < 40 || normalizedScale > 260) {
+      if (normalizedScale < 40 || normalizedScale > 500) {
         return NextResponse.json(
           { error: 'Tamanho do logo fora do limite permitido' },
           { status: 400 }
