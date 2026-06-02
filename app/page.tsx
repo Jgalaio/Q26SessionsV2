@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 
 const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
 const DEFAULT_HOME_SUBTITLE = 'Vota no teu DJ favorito'
+type HomeSubtitleMode = 'text' | 'image'
 
 export default function HomePage() {
   const [djs, setDjs] = useState<any[]>([])
@@ -13,6 +14,11 @@ export default function HomePage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
   const [homeSubtitle, setHomeSubtitle] = useState(DEFAULT_HOME_SUBTITLE)
+  const [homeSubtitleMode, setHomeSubtitleMode] =
+    useState<HomeSubtitleMode>('text')
+  const [homeSubtitleImageUrl, setHomeSubtitleImageUrl] = useState<string | null>(null)
+  const [homeSubtitleImageScalePercent, setHomeSubtitleImageScalePercent] =
+    useState(100)
   const [showEventTitle, setShowEventTitle] = useState(true)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
 
@@ -38,6 +44,11 @@ export default function HomePage() {
     setLogoUrl(data?.logo_url || null)
     setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
     setHomeSubtitle(data?.home_subtitle || DEFAULT_HOME_SUBTITLE)
+    setHomeSubtitleMode(data?.home_subtitle_mode === 'image' ? 'image' : 'text')
+    setHomeSubtitleImageUrl(data?.home_subtitle_image_url || null)
+    setHomeSubtitleImageScalePercent(
+      data?.home_subtitle_image_scale_percent ?? 100
+    )
     setShowEventTitle(data?.show_event_title_home ?? true)
     setHomeLogoScalePercent(
       data?.home_logo_scale_percent ?? data?.logo_scale_percent ?? 100
@@ -77,9 +88,21 @@ export default function HomePage() {
             }}
           />
 
-          <p className="theme-neon-heading text-lg md:text-xl font-semibold">
-            {homeSubtitle}
-          </p>
+          {homeSubtitleMode === 'image' && homeSubtitleImageUrl ? (
+            <img
+              src={homeSubtitleImageUrl}
+              alt={homeSubtitle}
+              className="theme-neon-logo mx-auto h-auto w-auto"
+              style={{
+                maxHeight: `${82 * (homeSubtitleImageScalePercent / 100)}px`,
+                maxWidth: `${520 * (homeSubtitleImageScalePercent / 100)}px`,
+              }}
+            />
+          ) : (
+            <p className="theme-neon-heading text-lg font-semibold md:text-xl">
+              {homeSubtitle}
+            </p>
+          )}
         </div>
 
         {/* 🏆 TOP 3 */}

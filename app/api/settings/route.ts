@@ -4,6 +4,7 @@ import { requireAdminApiAccess } from '@/lib/admin-api-auth'
 
 const MAX_EVENT_TITLE_LENGTH = 80
 const MAX_HOME_SUBTITLE_LENGTH = 120
+const HOME_SUBTITLE_MODES = ['text', 'image'] as const
 const EVENT_TITLE_VISIBILITY_FIELDS = [
   'show_event_title_home',
   'show_event_title_live',
@@ -79,6 +80,62 @@ export async function POST(req: Request) {
     }
 
     updates.home_subtitle = normalizedSubtitle
+  }
+
+  if ('home_subtitle_mode' in body) {
+    if (
+      typeof body.home_subtitle_mode !== 'string' ||
+      !HOME_SUBTITLE_MODES.includes(
+        body.home_subtitle_mode as (typeof HOME_SUBTITLE_MODES)[number]
+      )
+    ) {
+      return NextResponse.json(
+        { error: 'Modo do texto da pagina principal invalido' },
+        { status: 400 }
+      )
+    }
+
+    updates.home_subtitle_mode = body.home_subtitle_mode
+  }
+
+  if ('home_subtitle_image_url' in body) {
+    if (
+      body.home_subtitle_image_url !== null &&
+      typeof body.home_subtitle_image_url !== 'string'
+    ) {
+      return NextResponse.json(
+        { error: 'Imagem do texto da pagina principal invalida' },
+        { status: 400 }
+      )
+    }
+
+    updates.home_subtitle_image_url =
+      body.home_subtitle_image_url?.trim() || null
+  }
+
+  if ('home_subtitle_image_scale_percent' in body) {
+    if (
+      typeof body.home_subtitle_image_scale_percent !== 'number' ||
+      !Number.isFinite(body.home_subtitle_image_scale_percent)
+    ) {
+      return NextResponse.json(
+        { error: 'Tamanho da imagem da pagina principal invalido' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedScale = Math.round(
+      body.home_subtitle_image_scale_percent
+    )
+
+    if (normalizedScale < 40 || normalizedScale > 500) {
+      return NextResponse.json(
+        { error: 'Tamanho da imagem fora do limite permitido' },
+        { status: 400 }
+      )
+    }
+
+    updates.home_subtitle_image_scale_percent = normalizedScale
   }
 
   for (const field of EVENT_TITLE_VISIBILITY_FIELDS) {

@@ -5,7 +5,8 @@ import { tryGetSupabaseClient } from '@/lib/supabase'
 import type { ReactNode } from 'react'
 
 type Tab = 'djs' | 'ranking' | 'control'
-type BrandAssetTarget = 'home' | 'vote' | 'poster' | 'logo'
+type BrandAssetTarget = 'home' | 'vote' | 'poster' | 'logo' | 'homeSubtitle'
+type HomeSubtitleMode = 'text' | 'image'
 type EventTitleVisibilityOption = {
   label: string
   checked: boolean
@@ -42,6 +43,11 @@ export default function AdminClient() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [eventTitle, setEventTitle] = useState(DEFAULT_EVENT_TITLE)
   const [homeSubtitle, setHomeSubtitle] = useState(DEFAULT_HOME_SUBTITLE)
+  const [homeSubtitleMode, setHomeSubtitleMode] =
+    useState<HomeSubtitleMode>('text')
+  const [homeSubtitleImageUrl, setHomeSubtitleImageUrl] = useState<string | null>(null)
+  const [homeSubtitleImageScalePercent, setHomeSubtitleImageScalePercent] =
+    useState(100)
   const [showEventTitleHome, setShowEventTitleHome] = useState(true)
   const [showEventTitleLive, setShowEventTitleLive] = useState(true)
   const [showEventTitlePoster, setShowEventTitlePoster] = useState(true)
@@ -57,6 +63,8 @@ export default function AdminClient() {
   const [voteBackgroundFile, setVoteBackgroundFile] = useState<File | null>(null)
   const [posterBackgroundFile, setPosterBackgroundFile] = useState<File | null>(null)
   const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [homeSubtitleImageFile, setHomeSubtitleImageFile] =
+    useState<File | null>(null)
 
   const [totalCodes, setTotalCodes] = useState(1000)
   const [loadingCodes, setLoadingCodes] = useState(false)
@@ -225,6 +233,11 @@ export default function AdminClient() {
     setLogoUrl(data?.logo_url || null)
     setEventTitle(data?.event_title || DEFAULT_EVENT_TITLE)
     setHomeSubtitle(data?.home_subtitle || DEFAULT_HOME_SUBTITLE)
+    setHomeSubtitleMode(data?.home_subtitle_mode === 'image' ? 'image' : 'text')
+    setHomeSubtitleImageUrl(data?.home_subtitle_image_url || null)
+    setHomeSubtitleImageScalePercent(
+      data?.home_subtitle_image_scale_percent ?? 100
+    )
     setShowEventTitleHome(data?.show_event_title_home ?? true)
     setShowEventTitleLive(data?.show_event_title_live ?? true)
     setShowEventTitlePoster(data?.show_event_title_poster ?? true)
@@ -247,35 +260,61 @@ export default function AdminClient() {
   const saveEventTitle = async () => {
     const normalizedTitle = eventTitle.trim()
     const normalizedSubtitle = homeSubtitle.trim()
+    const normalizedSubtitleScale = Math.round(homeSubtitleImageScalePercent)
 
     if (!normalizedTitle || normalizedTitle.length > 80) {
       alert('O título do evento deve ter entre 1 e 80 caracteres.')
       return
     }
 
-    if (!normalizedSubtitle || normalizedSubtitle.length > 120) {
+    if (
+      homeSubtitleMode === 'text' &&
+      (!normalizedSubtitle || normalizedSubtitle.length > 120)
+    ) {
       alert('O texto da página principal deve ter entre 1 e 120 caracteres.')
+      return
+    }
+
+    if (normalizedSubtitleScale < 40 || normalizedSubtitleScale > 500) {
+      alert('A escala da imagem deve estar entre 40% e 500%.')
       return
     }
 
     setSavingEventTitle(true)
 
     try {
+      let subtitleImageUrl = homeSubtitleImageUrl
+
+      if (homeSubtitleMode === 'image' && homeSubtitleImageFile) {
+        subtitleImageUrl = await uploadImage(homeSubtitleImageFile, 'branding')
+      }
+
+      if (homeSubtitleMode === 'image' && !subtitleImageUrl) {
+        alert('Escolhe e guarda uma imagem para usar nesta zona.')
+        return
+      }
+
       await saveSettings({
         event_title: normalizedTitle,
-        home_subtitle: normalizedSubtitle,
+        home_subtitle: normalizedSubtitle || DEFAULT_HOME_SUBTITLE,
+        home_subtitle_mode: homeSubtitleMode,
+        home_subtitle_image_url: subtitleImageUrl,
+        home_subtitle_image_scale_percent: normalizedSubtitleScale,
         show_event_title_home: showEventTitleHome,
         show_event_title_live: showEventTitleLive,
         show_event_title_poster: showEventTitlePoster,
         show_event_title_print: showEventTitlePrint,
       })
       setEventTitle(normalizedTitle)
-      setHomeSubtitle(normalizedSubtitle)
+      setHomeSubtitle(normalizedSubtitle || DEFAULT_HOME_SUBTITLE)
+      setHomeSubtitleImageUrl(subtitleImageUrl)
+      setHomeSubtitleImageScalePercent(normalizedSubtitleScale)
+      setHomeSubtitleImageFile(null)
     } catch (error) {
       alert(
         error instanceof Error
           ? error.message
-          : 'Erro ao guardar título do evento'
+          : 'Erro ao guardar detalhes do evento'
       )
     } finally {
       setSavingEventTitle(false)
@@ -284,26 +323,51 @@ export default function AdminClient() {
 
   const saveAssetImage = async (target: BrandAssetTarget) => {
     const selectedFile =
-      target === 'home'
-        ? homeBackgroundFile
-        : target === 'vote'
-          ? voteBackgroundFile
-          : target === 'poster'
-            ? posterBackgroundFile
-          : logoFile
+      target === 'homeSubtitle'
+        ? homeSubtitleImageFile
+        : target === 'home'
+          ? homeBackgroundFile
+          : target === 'vote'
+            ? voteBackgroundFile
+            : target === 'poster'
+              ? posterBackgroundFile
+              : logoFile
 
     if (!selectedFile) {
       alert('Escolhe uma imagem primeiro')
       return
     }
 
+    const subtitleImageScale = Math.round(homeSubtitleImageScalePercent)
+
+    if (
+      target === 'homeSubtitle' &&
+      (subtitleImageScale < 40 || subtitleImageScale > 500)
+    ) {
+      alert('A escala da imagem deve estar entre 40% e 500%.')
+      return
+    }
+
     setSavingAsset(target)
 
     try {
-      const folder = target === 'logo' ? 'branding' : 'backgrounds'
+      const folder =
+        target === 'logo' || target === 'homeSubtitle'
+          ? 'branding'
+          : 'backgrounds'
       const imageUrl = await uploadImage(selectedFile, folder)
 
-      if (target === 'home') {
+      if (target === 'homeSubtitle') {
+        await saveSettings({
+          home_subtitle_image_url: imageUrl,
+          home_subtitle_mode: 'image',
+          home_subtitle_image_scale_percent: subtitleImageScale,
+        })
+        setHomeSubtitleImageUrl(imageUrl)
+        setHomeSubtitleImageScalePercent(subtitleImageScale)
+        setHomeSubtitleImageFile(null)
+        setHomeSubtitleMode('image')
+      } else if (target === 'home') {
         await saveSettings({ home_background_url: imageUrl })
         setHomeBackgroundUrl(imageUrl)
         setHomeBackgroundFile(null)
@@ -335,7 +399,15 @@ export default function AdminClient() {
     setSavingAsset(target)
 
     try {
-      if (target === 'home') {
+      if (target === 'homeSubtitle') {
+        await saveSettings({
+          home_subtitle_image_url: null,
+          home_subtitle_mode: 'text',
+        })
+        setHomeSubtitleImageUrl(null)
+        setHomeSubtitleImageFile(null)
+        setHomeSubtitleMode('text')
+      } else if (target === 'home') {
         await saveSettings({ home_background_url: null })
         setHomeBackgroundUrl(null)
         setHomeBackgroundFile(null)
@@ -904,18 +976,64 @@ export default function AdminClient() {
 
                   <div className="mt-5">
                     <label className="mb-2 block text-sm font-semibold text-white/82">
-                      Texto da página principal
+                      Chamada da página principal
                     </label>
-                    <input
-                      value={homeSubtitle}
-                      maxLength={120}
-                      onChange={(event) => setHomeSubtitle(event.target.value)}
-                      placeholder="Ex: Vota no teu DJ favorito"
-                      className={`${adminInputClass} max-w-xl`}
-                    />
-                    <p className="mt-2 text-xs text-white/52">
-                      {homeSubtitle.trim().length || 0}/120 caracteres
-                    </p>
+
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {(['text', 'image'] as HomeSubtitleMode[]).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setHomeSubtitleMode(mode)}
+                          className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                            homeSubtitleMode === mode
+                              ? 'bg-cyan-300 text-slate-950'
+                              : 'bg-white/8 text-white/72 hover:bg-white/12'
+                          }`}
+                        >
+                          {mode === 'text' ? 'Texto' : 'Imagem'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {homeSubtitleMode === 'text' ? (
+                      <>
+                        <input
+                          value={homeSubtitle}
+                          maxLength={120}
+                          onChange={(event) =>
+                            setHomeSubtitle(event.target.value)
+                          }
+                          placeholder="Ex: Vota no teu DJ favorito"
+                          className={`${adminInputClass} max-w-xl`}
+                        />
+                        <p className="mt-2 text-xs text-white/52">
+                          {homeSubtitle.trim().length || 0}/120 caracteres
+                        </p>
+                      </>
+                    ) : (
+                      <div className="max-w-xl">
+                        <AssetCard
+                          title="Imagem da chamada"
+                          currentImage={homeSubtitleImageUrl}
+                          selectedFile={homeSubtitleImageFile}
+                          saving={savingAsset === 'homeSubtitle'}
+                          previewMode="contain"
+                          onFileChange={setHomeSubtitleImageFile}
+                          onSave={() => void saveAssetImage('homeSubtitle')}
+                          onClear={() => void clearAssetImage('homeSubtitle')}
+                        >
+                          <LogoScaleControl
+                            label="Escala da imagem"
+                            value={homeSubtitleImageScalePercent}
+                            onChange={setHomeSubtitleImageScalePercent}
+                          />
+                        </AssetCard>
+                        <p className="mt-2 text-xs text-white/52">
+                          A imagem mantém sempre a proporção original.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -924,7 +1042,7 @@ export default function AdminClient() {
                   disabled={savingEventTitle}
                   className={`${adminPrimaryBtnClass} w-full lg:w-auto`}
                 >
-                  {savingEventTitle ? 'A guardar...' : 'Guardar título'}
+                  {savingEventTitle ? 'A guardar...' : 'Guardar detalhes'}
                 </button>
               </div>
             </div>
