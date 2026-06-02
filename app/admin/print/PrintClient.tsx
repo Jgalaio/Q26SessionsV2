@@ -31,6 +31,7 @@ export default function PrintClient() {
   const [mode, setMode] = useState<PrintMode>('ticket')
   const [version, setVersion] = useState<PrintVersion>('v2')
   const [resettingCodes, setResettingCodes] = useState(false)
+  const [markingDistributed, setMarkingDistributed] = useState(false)
 
   useEffect(() => {
     void fetchCodes()
@@ -86,17 +87,66 @@ export default function PrintClient() {
     setItems(result)
   }
 
-  const markAsDistributed = async () => {
-    const codesToUpdate = filtered.map((code) => code.code)
+  const markAsDistributed = async (
+    options: { silent?: boolean; codesToUpdate?: string[] } = {}
+  ) => {
+    const codesToUpdate =
+      options.codesToUpdate ?? filtered.map((code) => code.code)
 
-    await fetch('/api/codes/distribute', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ codes: codesToUpdate }),
-    })
+    if (codesToUpdate.length === 0) {
+      if (!options.silent) {
+        alert('Não há códigos selecionados para marcar como entregues.')
+      }
 
-    alert('✅ Marcados como distribuídos')
-    void fetchCodes()
+      return false
+    }
+
+    setMarkingDistributed(true)
+
+    try {
+      const res = await fetch('/api/codes/distribute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codes: codesToUpdate }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro ao marcar códigos como entregues')
+      }
+
+      if (!options.silent) {
+        alert('✅ Marcados como entregues')
+      }
+
+      await fetchCodes()
+      return true
+    } catch (error) {
+      if (!options.silent) {
+        alert(
+          error instanceof Error
+            ? error.message
+            : 'Erro ao marcar códigos como entregues'
+        )
+      }
+
+      return false
+    } finally {
+      setMarkingDistributed(false)
+    }
+  }
+
+  const printAndMarkAsDistributed = async () => {
+    if (filtered.length === 0) {
+      alert('Não há códigos selecionados para imprimir.')
+      return
+    }
+
+    const printedCodes = filtered.map((code) => code.code)
+
+    window.print()
+    await markAsDistributed({ silent: true, codesToUpdate: printedCodes })
   }
 
   const resetUsedCodes = async () => {
@@ -147,6 +197,8 @@ export default function PrintClient() {
     setMode,
     setVersion,
     markAsDistributed,
+    printAndMarkAsDistributed,
+    markingDistributed,
     resetUsedCodes,
     resettingCodes,
   }
@@ -172,7 +224,9 @@ type PrintViewProps = {
   setOnlyAvailable: (value: boolean) => void
   setMode: (value: PrintMode) => void
   setVersion: (value: PrintVersion) => void
-  markAsDistributed: () => void
+  markAsDistributed: () => Promise<boolean>
+  printAndMarkAsDistributed: () => Promise<void>
+  markingDistributed: boolean
   resetUsedCodes: () => void
   resettingCodes: boolean
 }
@@ -184,12 +238,15 @@ function PrintVersionOne({
   mode,
   version,
   items,
+  filtered,
   setStart,
   setEnd,
   setOnlyAvailable,
   setMode,
   setVersion,
   markAsDistributed,
+  printAndMarkAsDistributed,
+  markingDistributed,
 }: PrintViewProps) {
   return (
     <main className="bg-white p-4 font-mono">
@@ -234,17 +291,19 @@ function PrintVersionOne({
         </select>
 
         <button
-          onClick={() => window.print()}
-          className="px-4 py-2 bg-black text-white rounded"
+          onClick={() => void printAndMarkAsDistributed()}
+          disabled={items.length === 0 || markingDistributed}
+          className="px-4 py-2 bg-black text-white rounded disabled:opacity-50"
         >
-          🖨️ Imprimir
+          {markingDistributed ? 'A marcar...' : '🖨️ Imprimir e marcar'}
         </button>
 
         <button
-          onClick={markAsDistributed}
-          className="px-4 py-2 bg-green-600 text-white rounded"
+          onClick={() => void markAsDistributed()}
+          disabled={filtered.length === 0 || markingDistributed}
+          className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
         >
-          ✅ Marcar como entregue
+          {markingDistributed ? 'A marcar...' : '✅ Marcar como entregue'}
         </button>
 
         <label className="flex items-center gap-1 text-sm">
@@ -457,6 +516,8 @@ function PrintVersionTwo({
   setMode,
   setVersion,
   markAsDistributed,
+  printAndMarkAsDistributed,
+  markingDistributed,
   resetUsedCodes,
   resettingCodes,
 }: PrintViewProps) {
@@ -559,17 +620,19 @@ function PrintVersionTwo({
 
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
               <button
-                onClick={() => window.print()}
-                className="rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-5 py-3 font-bold text-white shadow-[0_0_28px_rgba(255,88,208,0.24)] transition hover:scale-[1.02]"
+                onClick={() => void printAndMarkAsDistributed()}
+                disabled={items.length === 0 || markingDistributed}
+                className="rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-5 py-3 font-bold text-white shadow-[0_0_28px_rgba(255,88,208,0.24)] transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Imprimir
+                {markingDistributed ? 'A marcar...' : 'Imprimir e marcar'}
               </button>
 
               <button
-                onClick={markAsDistributed}
-                className="rounded-2xl border border-white/12 bg-white/8 px-5 py-3 font-bold text-white transition hover:bg-white/12"
+                onClick={() => void markAsDistributed()}
+                disabled={filtered.length === 0 || markingDistributed}
+                className="rounded-2xl border border-white/12 bg-white/8 px-5 py-3 font-bold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Marcar entregue
+                {markingDistributed ? 'A marcar...' : 'Marcar entregue'}
               </button>
             </div>
           </div>
