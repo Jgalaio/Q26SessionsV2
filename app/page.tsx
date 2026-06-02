@@ -197,10 +197,14 @@ export default function HomePage() {
                     {dj.name}
                   </h2>
 
-                  {/* PERCENTAGEM */}
-                  <p className="mt-1 text-sm font-medium text-white/80">
-                    {percent}%
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="theme-neon-chip rounded-full px-3 py-1 text-xs font-bold">
+                      {percent}%
+                    </span>
+                    <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-md">
+                      {dj.votes} votos
+                    </span>
+                  </div>
 
                   {/* BARRA */}
                   <div className="w-full h-2.5 bg-white/15 rounded-full mt-3 overflow-hidden">
