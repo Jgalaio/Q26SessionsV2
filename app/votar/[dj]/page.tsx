@@ -386,20 +386,23 @@ export default function VotePage() {
                 Se o QR não ler, introduz o código manualmente.
               </p>
 
-              <div className="flex gap-2">
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <input
                   value={manualCode}
                   onChange={(event) =>
                     setManualCode(event.target.value.toUpperCase())
                   }
                   placeholder="PS-ABCD-000001"
-                  className="flex-1 rounded-xl border border-white/12 bg-[#0e1230]/85 px-4 py-3 text-white placeholder:text-white/35 outline-none"
+                  maxLength={14}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="min-w-0 w-full rounded-xl border border-white/12 bg-[#0e1230]/85 px-4 py-3 text-center text-white placeholder:text-white/35 outline-none sm:text-left"
                 />
 
                 <button
                   onClick={() => void autoVote(manualCode)}
                   disabled={loading || !manualCode.trim()}
-                  className="rounded-xl bg-white/10 px-4 py-3 font-bold text-white disabled:opacity-40"
+                  className="w-full rounded-xl bg-white/10 px-4 py-3 font-bold text-white disabled:opacity-40 sm:w-auto sm:px-5"
                 >
                   OK
                 </button>
