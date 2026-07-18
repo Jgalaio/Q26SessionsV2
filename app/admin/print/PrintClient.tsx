@@ -14,6 +14,7 @@ type PrintMode = 'ticket' | 'a4-12' | 'a4-24' | 'label-62x29'
 type PrintVersion = 'v1' | 'v2'
 
 const DEFAULT_EVENT_TITLE = 'Q26 Sessions'
+const DEFAULT_BATCH_SIZE = 100
 
 const modeLabels: Record<PrintMode, string> = {
   ticket: 'Talão térmico',
@@ -36,10 +37,22 @@ export default function PrintClient() {
   const [showEventTitle, setShowEventTitle] = useState(true)
   const [resettingCodes, setResettingCodes] = useState(false)
   const [markingDistributed, setMarkingDistributed] = useState(false)
+  const [refreshingCodes, setRefreshingCodes] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
   useEffect(() => {
     void fetchCodes()
     void fetchSettings()
+
+    const refreshOnFocus = () => {
+      void fetchCodes()
+    }
+
+    window.addEventListener('focus', refreshOnFocus)
+
+    return () => {
+      window.removeEventListener('focus', refreshOnFocus)
+    }
   }, [])
 
   useEffect(() => {
@@ -50,10 +63,70 @@ export default function PrintClient() {
     void generateQR()
   }, [filtered, version])
 
-  const fetchCodes = async () => {
-    const res = await fetch('/api/codes')
-    const data = await res.json()
-    setCodes(data || [])
+  const getSelectableCodes = (source: VoteCode[]) => {
+    if (!onlyAvailable) {
+      return [...source]
+    }
+
+    return version === 'v2'
+      ? source.filter((code) => !code.distributed && !code.used)
+      : source.filter((code) => !code.distributed)
+  }
+
+  const selectNewestCodes = (source: VoteCode[]) => {
+    const list = getSelectableCodes(source)
+
+    if (list.length === 0) {
+      setStart(1)
+      setEnd(DEFAULT_BATCH_SIZE)
+      return
+    }
+
+    const batchSize = Math.max(end - start + 1, DEFAULT_BATCH_SIZE)
+    const nextEnd = list.length
+    const nextStart = Math.max(1, nextEnd - batchSize + 1)
+
+    setStart(nextStart)
+    setEnd(nextEnd)
+  }
+
+  const fetchCodes = async (options: { selectNewest?: boolean } = {}) => {
+    setRefreshingCodes(true)
+
+    try {
+      const res = await fetch(`/api/codes?ts=${Date.now()}`, {
+        cache: 'no-store',
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro ao carregar códigos')
+      }
+
+      const nextCodes = Array.isArray(data) ? data : []
+
+      setCodes(nextCodes)
+
+      if (options.selectNewest) {
+        selectNewestCodes(nextCodes)
+      }
+
+      setLastUpdated(
+        new Date().toLocaleTimeString('pt-PT', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      )
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao carregar códigos'
+      )
+    } finally {
+      setRefreshingCodes(false)
+    }
   }
 
   const fetchSettings = async () => {
@@ -64,15 +137,7 @@ export default function PrintClient() {
   }
 
   const applyFilter = () => {
-    let list = [...codes]
-
-    if (onlyAvailable) {
-      list =
-        version === 'v2'
-          ? list.filter((code) => !code.distributed && !code.used)
-          : list.filter((code) => !code.distributed)
-    }
-
+    const list = getSelectableCodes(codes)
     const slice = list.slice(start - 1, end)
     setFiltered(slice)
   }
@@ -194,6 +259,14 @@ export default function PrintClient() {
     }
   }
 
+  const refreshCodes = () => {
+    void fetchCodes()
+  }
+
+  const showNewestCodes = () => {
+    void fetchCodes({ selectNewest: true })
+  }
+
   const sharedProps = {
     start,
     end,
@@ -213,6 +286,10 @@ export default function PrintClient() {
     markAsDistributed,
     printAndMarkAsDistributed,
     markingDistributed,
+    refreshingCodes,
+    lastUpdated,
+    refreshCodes,
+    showNewestCodes,
     resetUsedCodes,
     resettingCodes,
   }
@@ -243,6 +320,10 @@ type PrintViewProps = {
   markAsDistributed: () => Promise<boolean>
   printAndMarkAsDistributed: () => Promise<void>
   markingDistributed: boolean
+  refreshingCodes: boolean
+  lastUpdated: string | null
+  refreshCodes: () => void
+  showNewestCodes: () => void
   resetUsedCodes: () => void
   resettingCodes: boolean
 }
@@ -265,6 +346,10 @@ function PrintVersionOne({
   markAsDistributed,
   printAndMarkAsDistributed,
   markingDistributed,
+  refreshingCodes,
+  lastUpdated,
+  refreshCodes,
+  showNewestCodes,
 }: PrintViewProps) {
   return (
     <main className="bg-white p-4 font-mono">
@@ -324,6 +409,22 @@ function PrintVersionOne({
           {markingDistributed ? 'A marcar...' : '✅ Marcar como entregue'}
         </button>
 
+        <button
+          onClick={refreshCodes}
+          disabled={refreshingCodes}
+          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+        >
+          {refreshingCodes ? 'A atualizar...' : 'Atualizar lista'}
+        </button>
+
+        <button
+          onClick={showNewestCodes}
+          disabled={refreshingCodes}
+          className="px-4 py-2 bg-slate-700 text-white rounded disabled:opacity-50"
+        >
+          Mostrar últimos códigos
+        </button>
+
         <label className="flex items-center gap-1 text-sm">
           <input
             type="checkbox"
@@ -332,6 +433,12 @@ function PrintVersionOne({
           />
           Só não entregues
         </label>
+
+        {lastUpdated && (
+          <span className="text-xs text-gray-500">
+            Atualizado às {lastUpdated}
+          </span>
+        )}
 
       </div>
 
@@ -544,6 +651,10 @@ function PrintVersionTwo({
   markAsDistributed,
   printAndMarkAsDistributed,
   markingDistributed,
+  refreshingCodes,
+  lastUpdated,
+  refreshCodes,
+  showNewestCodes,
   resetUsedCodes,
   resettingCodes,
 }: PrintViewProps) {
@@ -674,10 +785,31 @@ function PrintVersionTwo({
               Só códigos disponíveis
             </label>
 
-            <div className="flex flex-wrap gap-3 text-sm text-white/62">
-              <span>{filtered.length} selecionados</span>
-              <span>{items.length} QR preparados</span>
-              <span>{modeLabels[mode]}</span>
+            <div className="flex flex-col gap-3 md:items-end">
+              <div className="flex flex-wrap gap-3 text-sm text-white/62">
+                <span>{filtered.length} selecionados</span>
+                <span>{items.length} QR preparados</span>
+                <span>{modeLabels[mode]}</span>
+                {lastUpdated && <span>Atualizado às {lastUpdated}</span>}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={refreshCodes}
+                  disabled={refreshingCodes}
+                  className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-sm font-bold text-cyan-100 transition hover:bg-cyan-300/16 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {refreshingCodes ? 'A atualizar...' : 'Atualizar lista'}
+                </button>
+
+                <button
+                  onClick={showNewestCodes}
+                  disabled={refreshingCodes}
+                  className="rounded-2xl border border-white/12 bg-white/8 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Mostrar últimos códigos
+                </button>
+              </div>
             </div>
           </div>
 
