@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "commit:auto:setup": "git config core.hooksPath .githooks",
     "commit:auto": "node scripts/auto-commit.mjs",
     "commit:auto:push": "node scripts/auto-commit.mjs --push"
   },

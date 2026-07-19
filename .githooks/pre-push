@@ -1,0 +1,37 @@
+#!/bin/sh
+
+set -eu
+
+if [ "${Q26_SKIP_AUTO_COMMIT:-}" = "1" ]; then
+  exit 0
+fi
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$repo_root" || exit 1
+
+changed_files="$(git status --porcelain=v1 --untracked-files=all | sed 's/^...//')"
+
+if [ -z "$changed_files" ]; then
+  exit 0
+fi
+
+blocked_files="$(printf '%s\n' "$changed_files" | grep -E '(^|/)\.env($|\.)|^\.next/|^\.vercel/|^node_modules/|(^|/).*\.(key|pem|p12|pfx)$' || true)"
+
+if [ -n "$blocked_files" ]; then
+  echo "Auto commit bloqueado por ficheiros sensiveis:"
+  printf '%s\n' "$blocked_files" | sed 's/^/- /'
+  exit 1
+fi
+
+message="chore: auto commit $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+
+echo "A criar commit automatico antes do upload..."
+git add -A
+
+if git diff --cached --quiet; then
+  echo "Nada para commitar depois do stage."
+  exit 0
+fi
+
+git commit -m "$message"
+echo "Commit automatico criado. A continuar upload..."
