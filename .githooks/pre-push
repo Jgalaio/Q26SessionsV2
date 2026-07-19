@@ -34,4 +34,6 @@ if git diff --cached --quiet; then
 fi
 
 git commit -m "$message"
-echo "Commit automatico criado. A continuar upload..."
+echo "Commit automatico criado."
+echo "Volta a executar git push para enviar este commit, ou usa npm run upload da proxima vez."
+exit 1
