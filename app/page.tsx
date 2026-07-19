@@ -27,6 +27,7 @@ export default function HomePage() {
     useState(false)
   const [showEventTitle, setShowEventTitle] = useState(true)
   const [homeLogoScalePercent, setHomeLogoScalePercent] = useState(100)
+  const [votingOpen, setVotingOpen] = useState(true)
 
   useEffect(() => {
     fetchRanking()
@@ -62,10 +63,15 @@ export default function HomePage() {
     setHomeFooterDisclaimerText(data?.home_footer_disclaimer_text || '')
     setShowHomeFooterDisclaimer(data?.show_home_footer_disclaimer ?? false)
     setShowEventTitle(data?.show_event_title_home ?? true)
+    setVotingOpen(data?.voting_open ?? true)
     setHomeLogoScalePercent(
       data?.home_logo_scale_percent ?? data?.logo_scale_percent ?? 100
     )
   }
+
+  const winner = totalVotes > 0 ? djs[0] : null
+  const winnerPercent =
+    winner && totalVotes > 0 ? Math.round((winner.votes / totalVotes) * 100) : 0
 
   return (
     <main
@@ -117,133 +123,208 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* 🏆 TOP 3 */}
-        {djs.length >= 3 && (
-          <div className="mb-10 text-center">
-            <div className="theme-neon-shell rounded-[28px] px-5 py-6 md:px-8">
-              <h2 className="theme-neon-heading text-xl font-black mb-5 uppercase tracking-[0.22em]">
-                Top DJs
-              </h2>
-
-              <div className="flex flex-col md:flex-row justify-center gap-4">
-
-                {djs.slice(0, 3).map((dj, index) => {
-                  const percent =
-                    totalVotes > 0
-                      ? Math.round((dj.votes / totalVotes) * 100)
-                      : 0
-
-                  const medals = ['🥇', '🥈', '🥉']
-
-                  return (
-                    <div
-                      key={dj.id}
-                      className="theme-neon-stat px-6 py-5 rounded-3xl min-w-[210px]"
-                    >
-                      <p className="text-lg font-black theme-neon-heading">
-                        {medals[index]} {dj.name}
-                      </p>
-
-                      <p className="mt-2 text-sm theme-neon-muted">
-                        {percent}% dos votos
-                      </p>
-                    </div>
-                  )
-                })}
-
+        {!votingOpen ? (
+          <section className="mx-auto max-w-4xl text-center">
+            <div className="theme-neon-shell overflow-hidden rounded-[36px] p-5 md:p-8">
+              <div className="theme-neon-chip mx-auto inline-flex rounded-full px-5 py-2 text-xs font-black uppercase tracking-[0.34em]">
+                Votação encerrada
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* GRID DJs */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              {winner ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.55, ease: 'easeOut' }}
+                  className="mt-7"
+                >
+                  <p className="theme-neon-heading text-lg font-bold uppercase tracking-[0.22em] md:text-xl">
+                    Parabéns ao vencedor
+                  </p>
 
-          {djs.map((dj, index) => {
-            const percent =
-              totalVotes > 0
-                ? Math.round((dj.votes / totalVotes) * 100)
-                : 0
-
-            const isLeader = index === 0
-
-            return (
-              <motion.a
-                key={dj.id}
-                href={`/votar/${dj.id}`}
-                whileHover={{ scale: 1.03 }}
-                className={`relative rounded-[28px] overflow-hidden shadow-2xl border border-white/10 ${
-                  isLeader ? 'ring-2 ring-cyan-300/90 shadow-[0_0_34px_rgba(110,231,255,0.35)]' : ''
-                }`}
-              >
-
-                {/* 🏆 BADGE RANKING */}
-                {index < 3 && (
-                  <div className="absolute top-3 left-3 z-10">
-                    <div className={`
-                      px-3 py-1 rounded-full text-xs font-bold shadow-md backdrop-blur-md
-                      ${index === 0 ? 'bg-cyan-300 text-slate-950' : ''}
-                      ${index === 1 ? 'bg-white/80 text-slate-950' : ''}
-                      ${index === 2 ? 'bg-fuchsia-300 text-slate-950' : ''}
-                    `}>
-                      {index === 0 && '🥇 #1'}
-                      {index === 1 && '🥈 #2'}
-                      {index === 2 && '🥉 #3'}
+                  <div className="relative mx-auto mt-6 max-w-2xl overflow-hidden rounded-[34px] border border-cyan-200/25 shadow-[0_0_60px_rgba(110,231,255,0.24)]">
+                    <img
+                      src={winner.image_url}
+                      alt={winner.name}
+                      className="h-[420px] w-full object-cover object-center"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050513] via-[#080922]/32 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-6 text-left md:p-8">
+                      <div className="inline-flex rounded-full bg-cyan-300 px-4 py-1 text-xs font-black uppercase tracking-[0.2em] text-slate-950 shadow-[0_0_24px_rgba(110,231,255,0.55)]">
+                        #1 DJ
+                      </div>
+                      <h2 className="theme-neon-heading mt-4 text-4xl font-black leading-tight md:text-6xl">
+                        {winner.name}
+                      </h2>
                     </div>
                   </div>
-                )}
 
-                {/* IMAGEM */}
-                <img
-                  src={dj.image_url}
-                  className="w-full h-[280px] object-cover"
-                />
+                  <div className="mx-auto mt-6 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="theme-neon-stat rounded-3xl px-6 py-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/60">
+                        Votos
+                      </p>
+                      <p className="theme-neon-heading mt-2 text-4xl font-black">
+                        {winner.votes}
+                      </p>
+                    </div>
+                    <div className="theme-neon-stat rounded-3xl px-6 py-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/60">
+                        Percentagem
+                      </p>
+                      <p className="theme-neon-heading mt-2 text-4xl font-black">
+                        {winnerPercent}%
+                      </p>
+                    </div>
+                  </div>
 
-                {/* OVERLAY */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050513]/95 via-[#0c1230]/45 to-[#14081f]/12" />
-
-                {/* CONTEÚDO */}
-                <div className="absolute inset-0 flex flex-col justify-end p-5 text-white">
-
-                  <h2 className="theme-neon-heading text-2xl font-black">
-                    {dj.name}
+                  <p className="theme-neon-muted mx-auto mt-6 max-w-2xl text-sm leading-6 md:text-base">
+                    Obrigado a todos os DJs e a todos os que participaram na
+                    votação.
+                  </p>
+                </motion.div>
+              ) : (
+                <div className="mx-auto mt-7 max-w-2xl rounded-[30px] border border-white/12 bg-white/8 px-6 py-10">
+                  <h2 className="theme-neon-heading text-3xl font-black">
+                    Votação terminada
+                  </h2>
+                  <p className="theme-neon-muted mt-3">
+                    Ainda não há votos suficientes para apresentar um vencedor.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        ) : (
+          <>
+            {/* 🏆 TOP 3 */}
+            {djs.length >= 3 && (
+              <div className="mb-10 text-center">
+                <div className="theme-neon-shell rounded-[28px] px-5 py-6 md:px-8">
+                  <h2 className="theme-neon-heading text-xl font-black mb-5 uppercase tracking-[0.22em]">
+                    Top DJs
                   </h2>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="theme-neon-chip rounded-full px-3 py-1 text-xs font-bold">
-                      {percent}%
-                    </span>
-                    <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-md">
-                      {dj.votes} votos
-                    </span>
-                  </div>
+                  <div className="flex flex-col md:flex-row justify-center gap-4">
 
-                  {/* BARRA */}
-                  <div className="w-full h-2.5 bg-white/15 rounded-full mt-3 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-fuchsia-400 via-violet-400 to-cyan-300 shadow-[0_0_18px_rgba(110,231,255,0.35)]"
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
+                    {djs.slice(0, 3).map((dj, index) => {
+                      const percent =
+                        totalVotes > 0
+                          ? Math.round((dj.votes / totalVotes) * 100)
+                          : 0
 
+                      const medals = ['🥇', '🥈', '🥉']
+
+                      return (
+                        <div
+                          key={dj.id}
+                          className="theme-neon-stat px-6 py-5 rounded-3xl min-w-[210px]"
+                        >
+                          <p className="text-lg font-black theme-neon-heading">
+                            {medals[index]} {dj.name}
+                          </p>
+
+                          <p className="mt-2 text-sm theme-neon-muted">
+                            {percent}% dos votos
+                          </p>
+                        </div>
+                      )
+                    })}
+
+                  </div>
                 </div>
+              </div>
+            )}
 
-              </motion.a>
-            )
-          })}
+            {/* GRID DJs */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
 
-        </div>
+              {djs.map((dj, index) => {
+                const percent =
+                  totalVotes > 0
+                    ? Math.round((dj.votes / totalVotes) * 100)
+                    : 0
 
-        <div className="mt-8 flex justify-center">
-          <div className="theme-neon-shell rounded-[28px] px-8 py-5 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/60">
-              Total de votos
-            </p>
-            <p className="theme-neon-heading mt-2 text-4xl font-black md:text-5xl">
-              {totalVotes}
-            </p>
-          </div>
-        </div>
+                const isLeader = index === 0
+
+                return (
+                  <motion.a
+                    key={dj.id}
+                    href={`/votar/${dj.id}`}
+                    whileHover={{ scale: 1.03 }}
+                    className={`relative rounded-[28px] overflow-hidden shadow-2xl border border-white/10 ${
+                      isLeader ? 'ring-2 ring-cyan-300/90 shadow-[0_0_34px_rgba(110,231,255,0.35)]' : ''
+                    }`}
+                  >
+
+                    {/* 🏆 BADGE RANKING */}
+                    {index < 3 && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <div className={`
+                          px-3 py-1 rounded-full text-xs font-bold shadow-md backdrop-blur-md
+                          ${index === 0 ? 'bg-cyan-300 text-slate-950' : ''}
+                          ${index === 1 ? 'bg-white/80 text-slate-950' : ''}
+                          ${index === 2 ? 'bg-fuchsia-300 text-slate-950' : ''}
+                        `}>
+                          {index === 0 && '🥇 #1'}
+                          {index === 1 && '🥈 #2'}
+                          {index === 2 && '🥉 #3'}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* IMAGEM */}
+                    <img
+                      src={dj.image_url}
+                      className="w-full h-[280px] object-cover"
+                    />
+
+                    {/* OVERLAY */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050513]/95 via-[#0c1230]/45 to-[#14081f]/12" />
+
+                    {/* CONTEÚDO */}
+                    <div className="absolute inset-0 flex flex-col justify-end p-5 text-white">
+
+                      <h2 className="theme-neon-heading text-2xl font-black">
+                        {dj.name}
+                      </h2>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="theme-neon-chip rounded-full px-3 py-1 text-xs font-bold">
+                          {percent}%
+                        </span>
+                        <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-md">
+                          {dj.votes} votos
+                        </span>
+                      </div>
+
+                      {/* BARRA */}
+                      <div className="w-full h-2.5 bg-white/15 rounded-full mt-3 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-fuchsia-400 via-violet-400 to-cyan-300 shadow-[0_0_18px_rgba(110,231,255,0.35)]"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+
+                    </div>
+
+                  </motion.a>
+                )
+              })}
+
+            </div>
+
+            <div className="mt-8 flex justify-center">
+              <div className="theme-neon-shell rounded-[28px] px-8 py-5 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/60">
+                  Total de votos
+                </p>
+                <p className="theme-neon-heading mt-2 text-4xl font-black md:text-5xl">
+                  {totalVotes}
+                </p>
+              </div>
+            </div>
+          </>
+        )}
 
         {(homeFooterLogoUrl ||
           (showHomeFooterDisclaimer && homeFooterDisclaimerText)) && (
